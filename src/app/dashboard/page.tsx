@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
-import { supabase } from '@/lib/supabase'; // <--- IMPORT SUPABASE DI SINI
+import { supabase } from '@/lib/supabase';
 import { 
   PlusCircle, 
   FileUp, 
@@ -17,8 +17,13 @@ import {
 import BottomNav from '@/components/BottomNav';
 import MachineCard from '@/components/MachineCard';
 
-const containerStyle = { width: '100%', height: '300px' };
+const containerStyle = { 
+  width: '100%', 
+  height: '280px' 
+};
+
 const center = { lat: -6.9745, lng: 107.6305 };
+
 const mapStyles = [
   { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
   { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
@@ -29,22 +34,23 @@ const libraries: any = ['places'];
 export default function DashboardPage() {
   const [btStatus, setBtStatus] = useState<'Disconnected' | 'Connecting' | 'Connected'>('Disconnected');
   const [weight, setWeight] = useState<number>(0);
-  
-  // --- STATE BARU UNTUK DATA MESIN DARI DATABASE ---
   const [machines, setMachines] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string, // Gunakan env variable
-  libraries: libraries,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
+    libraries: libraries,
   });
 
-  // --- FUNGSI MENGAMBIL DATA DARI SUPABASE ---
   useEffect(() => {
+    // Fix untuk bug layar memanjang: paksa scroll ke atas & trigger resize
+    window.scrollTo(0, 0);
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 500);
+
     const fetchMachines = async () => {
-      // Ambil semua data dari tabel mesin_incinerator, urutkan dari yang terbaru
       const { data, error } = await supabase
         .from('mesin_incinerator')
         .select('*')
@@ -77,183 +83,168 @@ export default function DashboardPage() {
     }
   };
 
-  // Menghitung Status Mesin Otomatis (Sekarang berdasarkan data asli)
   const totalMachines = machines.length;
   const activeMachines = machines.filter(m => m.status === 'on').length;
   const inactiveMachines = machines.filter(m => m.status === 'off').length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex justify-center">
-    <div className="w-full max-w-md bg-white min-h-screen flex flex-col relative shadow-lg">
-        {/* GREETING */}
-        <div>
-          <p className="text-sm font-medium text-[#B84A4A] mb-1">Good Morning, Waste Officer</p>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Your Dashboard</h1>
-        </div>
-
-        {/* SECTION: DATA BANYAK SAMPAH */}
-        <section>
-          <div className="flex justify-between items-end mb-4">
-            <h2 className="text-sm font-bold text-slate-900 tracking-wider">DATA BANYAK SAMPAH</h2>
-            <button className="text-sm text-[#FF5A5F] hover:underline">View All</button>
-          </div>
+    <div className="min-h-screen bg-[#F8FAFC] flex justify-center overflow-x-hidden">
+      {/* Kontainer Utama (Mobile Max Width) */}
+      <div className="w-full max-w-md bg-[#F8FAFC] min-h-screen flex flex-col relative">
+        
+        {/* Konten dengan Spacing yang Rapi */}
+        <div className="flex flex-col space-y-9 px-6 pt-10 pb-40">
           
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <p className="text-sm text-slate-500 mb-1">Current Weight Collection</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-6xl font-light text-slate-800 tracking-tighter">{weight}</span>
-                  <span className="text-2xl font-medium text-slate-400">kg</span>
+          {/* GREETING */}
+          <header>
+            <p className="text-[10px] font-black text-[#FF5A5F] uppercase tracking-[0.2em] mb-2">
+              Management System
+            </p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">
+              Your Dashboard
+            </h1>
+          </header>
+
+          {/* SECTION: DATA BANYAK SAMPAH */}
+          <section className="space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Koleksi Sampah</h2>
+              <button className="text-xs font-bold text-[#FF5A5F]">View History</button>
+            </div>
+            
+            <div className="bg-white rounded-[2.5rem] p-7 shadow-xl shadow-slate-200/50 border border-white">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 mb-2 uppercase">Total Berat Hari Ini</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-6xl font-black text-slate-800 tracking-tighter">{weight}</span>
+                    <span className="text-xl font-bold text-slate-300">kg</span>
+                  </div>
+                </div>
+                <div className="bg-red-50 p-4 rounded-2xl">
+                  <FileUp className="w-6 h-6 text-[#FF5A5F]" />
                 </div>
               </div>
-              <div className="bg-red-50 p-3 rounded-2xl">
-                <FileUp className="w-6 h-6 text-[#FF5A5F]" />
-              </div>
-            </div>
 
-            <div className="mb-6">
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">Daily Target: 10kg</span>
-                <span className="text-[#FF5A5F] font-bold">80%</span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#FF5A5F] rounded-full w-[80%]"></div>
-              </div>
-            </div>
-
-            <button 
-              disabled={btStatus !== 'Connected'}
-              className={`w-full font-medium py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all 
-                ${btStatus === 'Connected' 
-                  ? 'bg-[#FF5A5F] hover:bg-[#ff484d] text-white shadow-md shadow-red-200 active:scale-[0.98]' 
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'}`}
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>UPLOAD NEW DATA</span>
-            </button>
-
-            <button 
-              onClick={handleConnectBluetooth}
-              disabled={btStatus === 'Connected'}
-              className={`w-full mt-3 font-medium py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all 
-                ${btStatus === 'Connected'
-                  ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 active:scale-[0.98]'
-                }`}
-            >
-              {btStatus === 'Disconnected' && <><Bluetooth className="w-5 h-5" /> Hubungkan Timbangan ESP32</>}
-              {btStatus === 'Connecting' && <><BluetoothSearching className="w-5 h-5 animate-pulse" /> Mencari Perangkat...</>}
-              {btStatus === 'Connected' && <><BluetoothConnected className="w-5 h-5" /> Timbangan Terhubung</>}
-            </button>
-          </div>
-        </section>
-
-        {/* SECTION: GOOGLE MAPS MONITORING */}
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-sm font-bold text-slate-900 tracking-wider">MONITORING LOKASI MESIN</h2>
-            <div className="flex gap-3 text-[10px] font-bold">
-              <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500" /> ON</span>
-              <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /> OFF</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl p-2 shadow-md border border-slate-100 overflow-hidden h-[320px]">
-            {isLoaded ? (
-              <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={center}
-                zoom={14} // Zoom diperkecil sedikit agar mencakup mesin yang jauh
-                options={{ disableDefaultUI: true, styles: mapStyles }}
-              >
-                {/* Looping Peta menggunakan kolom database asli (latitude, longitude, nama_tempat) */}
-                {machines.map((machine) => (
-                  <MarkerF
-                    key={machine.id}
-                    position={{ lat: machine.latitude, lng: machine.longitude }}
-                    title={machine.nama_tempat}
-                    icon={{
-                      path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
-                      fillColor: machine.status === 'on' ? '#22c55e' : '#ef4444',
-                      fillOpacity: 1,
-                      strokeColor: "white",
-                      strokeWeight: 2,
-                      scale: 0.4,
-                    }}
-                  />
-                ))}
-              </GoogleMap>
-            ) : (
-              <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 text-sm">
-                Memuat Peta...
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* SECTION: RINGKASAN STATUS MESIN */}
-        <section>
-          <h2 className="text-sm font-bold text-slate-900 tracking-wider mb-4">RINGKASAN STATUS</h2>
-          {isLoadingData ? (
-            <div className="text-center text-sm text-slate-400 py-4 animate-pulse">Menghitung data mesin...</div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2 border border-slate-100">
-                  <Server className="w-5 h-5 text-slate-500" />
+              <div className="mb-8">
+                <div className="flex justify-between text-[10px] font-black mb-2 uppercase tracking-wide">
+                  <span className="text-slate-400">Target: 10kg</span>
+                  <span className="text-[#FF5A5F]">80% Reach</span>
                 </div>
-                <span className="text-2xl font-bold text-slate-800">{totalMachines}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Total</span>
-              </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mb-2 border border-green-100">
-                  <Activity className="w-5 h-5 text-green-500" />
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#FF5A5F] rounded-full w-[80%] shadow-[0_0_8px_rgba(255,90,95,0.4)]"></div>
                 </div>
-                <span className="text-2xl font-bold text-green-600">{activeMachines}</span>
-                <span className="text-[10px] font-bold text-green-600/70 uppercase tracking-wider mt-1">Aktif</span>
               </div>
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mb-2 border border-red-100">
-                  <PowerOff className="w-5 h-5 text-red-500" />
-                </div>
-                <span className="text-2xl font-bold text-red-500">{inactiveMachines}</span>
-                <span className="text-[10px] font-bold text-red-500/70 uppercase tracking-wider mt-1">Mati</span>
-              </div>
-            </div>
-          )}
-        </section>
 
-        {/* SECTION: DAFTAR DETAIL MESIN */}
-        <section>
-          <h2 className="text-sm font-bold text-slate-900 tracking-wider mb-4 mt-8">DETAIL MESIN</h2>
-          {isLoadingData ? (
-            <div className="space-y-3">
-               <div className="w-full h-20 bg-slate-200 animate-pulse rounded-2xl"></div>
-               <div className="w-full h-20 bg-slate-200 animate-pulse rounded-2xl"></div>
+              <div className="flex flex-col gap-3">
+                <button 
+                  disabled={btStatus !== 'Connected'}
+                  className={`w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95
+                    ${btStatus === 'Connected' 
+                      ? 'bg-[#FF5A5F] text-white shadow-lg shadow-red-100' 
+                      : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}
+                >
+                  <PlusCircle className="w-5 h-5" />
+                  <span>UPLOAD DATA BARU</span>
+                </button>
+
+                <button 
+                  onClick={handleConnectBluetooth}
+                  disabled={btStatus === 'Connected'}
+                  className={`w-full font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95
+                    ${btStatus === 'Connected'
+                      ? 'bg-blue-50 text-blue-500 border border-blue-100'
+                      : 'bg-blue-600 text-white shadow-lg shadow-blue-100'
+                    }`}
+                >
+                  <Bluetooth className="w-5 h-5" />
+                  <span>{btStatus === 'Disconnected' ? 'Koneksi Timbangan' : btStatus === 'Connecting' ? 'Mencari...' : 'Timbangan Aktif'}</span>
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {machines.map((machine) => (
-                <MachineCard 
-                  key={machine.id}
-                  name={machine.nama_tempat}      // Disesuaikan dengan nama kolom Database
-                  lat={machine.latitude}          // Disesuaikan dengan nama kolom Database
-                  lng={machine.longitude}         // Disesuaikan dengan nama kolom Database
-                  status={machine.status}
-                />
-              ))}
-              
-              {machines.length === 0 && (
-                <div className="text-center text-slate-400 text-sm py-6 bg-white rounded-2xl border border-slate-100">
-                  Belum ada mesin yang terdaftar.
-                </div>
+          </section>
+
+          {/* SECTION: GOOGLE MAPS */}
+          <section className="space-y-4">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Monitoring Lokasi</h2>
+            <div className="bg-white rounded-[2.5rem] p-2 shadow-xl shadow-slate-200/50 border-4 border-white overflow-hidden h-[320px]">
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={center}
+                  zoom={14}
+                  options={{ disableDefaultUI: true, styles: mapStyles }}
+                >
+                  {machines.map((machine) => (
+                    <MarkerF
+                      key={machine.id}
+                      position={{ lat: machine.latitude, lng: machine.longitude }}
+                      title={machine.nama_tempat}
+                      icon={{
+                        path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
+                        fillColor: machine.status === 'on' ? '#22c55e' : '#ef4444',
+                        fillOpacity: 1,
+                        strokeColor: "white",
+                        strokeWeight: 3,
+                        scale: 0.4,
+                      }}
+                    />
+                  ))}
+                </GoogleMap>
+              ) : (
+                <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300 font-bold text-xs">LOADING MAP...</div>
               )}
             </div>
-          )}
-        </section>
+          </section>
 
+          {/* SECTION: RINGKASAN STATUS */}
+          <section className="space-y-4">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Statistik Mesin</h2>
+            <div className="grid grid-cols-3 gap-4">
+               {/* Total */}
+               <div className="bg-white rounded-3xl py-6 flex flex-col items-center border border-slate-100 shadow-sm">
+                  <Server className="w-5 h-5 text-slate-300 mb-2" />
+                  <span className="text-2xl font-black text-slate-800">{totalMachines}</span>
+                  <span className="text-[8px] font-black text-slate-400 uppercase mt-1">Total</span>
+               </div>
+               {/* Aktif */}
+               <div className="bg-white rounded-3xl py-6 flex flex-col items-center border border-green-50 shadow-sm">
+                  <Activity className="w-5 h-5 text-green-400 mb-2" />
+                  <span className="text-2xl font-black text-green-600">{activeMachines}</span>
+                  <span className="text-[8px] font-black text-green-500/60 uppercase mt-1">Aktif</span>
+               </div>
+               {/* Mati */}
+               <div className="bg-white rounded-3xl py-6 flex flex-col items-center border border-red-50 shadow-sm">
+                  <PowerOff className="w-5 h-5 text-red-400 mb-2" />
+                  <span className="text-2xl font-black text-red-500">{inactiveMachines}</span>
+                  <span className="text-[8px] font-black text-red-500/60 uppercase mt-1">Mati</span>
+               </div>
+            </div>
+          </section>
+
+          {/* SECTION: DETAIL MESIN (LIST) */}
+          <section className="space-y-4">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Daftar Unit</h2>
+            <div className="flex flex-col gap-3">
+              {isLoadingData ? (
+                <div className="w-full h-24 bg-white animate-pulse rounded-[2rem]"></div>
+              ) : (
+                machines.map((machine) => (
+                  <MachineCard 
+                    key={machine.id}
+                    name={machine.nama_tempat}
+                    lat={machine.latitude}
+                    lng={machine.longitude}
+                    status={machine.status}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+
+        </div>
       </div>
+
       <BottomNav />
     </div>
   );
