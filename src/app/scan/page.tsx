@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Html5Qrcode } from 'html5-qrcode'; // Gunakan versi tanpa UI bawaan
+import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, 
@@ -11,8 +11,7 @@ import {
   CheckCircle2, 
   Loader2,
   AlertCircle,
-  Zap,
-  ZapOff
+  ScanLine
 } from 'lucide-react';
 
 export default function ScanPage() {
@@ -24,50 +23,29 @@ export default function ScanPage() {
   const [selectedStatus, setSelectedStatus] = useState<'on' | 'off' | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFlashOn, setIsFlashOn] = useState(false);
-
-  
 
   useEffect(() => {
-    // Inisialisasi scanner hanya jika belum ada ID yang terscan
     if (!scannedId) {
       const html5QrCode = new Html5Qrcode("reader");
       scannerRef.current = html5QrCode;
 
-      const config = { 
-  fps: 25, // Meningkatkan kecepatan tangkapan
-  qrbox: { width: 250, height: 250 },
-  // Meminta resolusi HD agar QR yang kecil bisa terbaca
-  videoConstraints: {
-    width: { min: 640, ideal: 1280, max: 1920 },
-    height: { min: 480, ideal: 720, max: 1080 },
-    facingMode: "environment"
-  }
-};
-      // Mulai kamera (menggunakan kamera belakang secara otomatis)
-     html5QrCode.start(
+      html5QrCode.start(
         { facingMode: "environment" }, 
-        config as any, 
-        onScanSuccess as any,
-        () => {} // <--- Tambahkan ini sebagai argumen ke-4 (onScanFailure)
-      ).catch((err) => {
-        console.error("Gagal memulai kamera:", err);
-        setError("Izin kamera ditolak atau tidak ditemukan.");
-      });
+        { fps: 20, qrbox: { width: 250, height: 250 } } as any, 
+        onScanSuccess,
+        () => {} // ignore failure
+      ).catch(() => setError("Akses kamera ditolak. Periksa izin browser Anda."));
 
       return () => {
-        if (scannerRef.current && scannerRef.current.isScanning) {
-          scannerRef.current.stop().catch(console.error);
+        if (scannerRef.current?.isScanning) {
+          scannerRef.current.stop().catch(() => {});
         }
       };
     }
   }, [scannedId]);
 
   async function onScanSuccess(decodedText: string) {
-    // Matikan kamera segera setelah scan berhasil
-    if (scannerRef.current) {
-      await scannerRef.current.stop();
-    }
+    if (scannerRef.current) await scannerRef.current.stop();
 
     try {
       const { data, error } = await supabase
@@ -77,8 +55,7 @@ export default function ScanPage() {
         .single();
 
       if (error || !data) {
-        setError("Mesin tidak valid atau tidak terdaftar.");
-        // Jika gagal, restart scanner setelah 3 detik
+        setError("QR Code tidak valid atau mesin tidak ditemukan.");
         setTimeout(() => window.location.reload(), 3000);
         return;
       }
@@ -87,140 +64,144 @@ export default function ScanPage() {
       setMachineName(data.nama_tempat);
       setSelectedStatus(data.status as 'on' | 'off');
     } catch (err) {
-      setError("Koneksi bermasalah.");
+      setError("Terjadi kesalahan jaringan.");
     }
   }
 
   const handleConfirmStatus = async () => {
     if (!scannedId || !selectedStatus) return;
     setIsUpdating(true);
-    const { error } = await supabase
-      .from('mesin_incinerator')
-      .update({ status: selectedStatus })
-      .eq('id', scannedId);
+    await supabase.from('mesin_incinerator').update({ status: selectedStatus }).eq('id', scannedId);
     setIsUpdating(false);
-
-    if (error) {
-      alert("Gagal: " + error.message);
-    } else {
-      router.push('/dashboard');
-    }
+    router.push('/dashboard');
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col font-sans z-50">
-      
-      {/* OVERLAY HEADER (Transparent) */}
-      <header className="absolute top-0 left-0 w-full flex items-center px-6 py-5 z-30 bg-gradient-to-b from-black/50 to-transparent">
-        <button onClick={() => router.back()} className="mr-4 text-white p-2 -ml-2 bg-white/10 rounded-full backdrop-blur-md">
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <h1 className="text-xl font-bold text-white">Scan QR Mesin</h1>
-      </header>
-
-      {!scannedId ? (
-        /* UI SCANNER FULL SCREEN */
-        <div className="relative w-full h-full">
-          {/* Elemen Video Kamera */}
-          <div id="reader" className="w-full h-full object-cover"></div>
-
-          {/* FRAME OVERLAY (Area Fokus) */}
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
-            {/* Bagian Luar yang Gelap */}
-            <div className="absolute inset-0 bg-black/40"></div>
-            
-            {/* Kotak Transparan di Tengah */}
-            <div className="relative w-64 h-64 border-2 border-white/50 rounded-[40px] overflow-hidden">
-                {/* Garis Scan Berjalan */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#FF5A5F] shadow-[0_0_15px_#FF5A5F] animate-scan-line"></div>
-                
-                {/* Sudut Dekoratif */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#FF5A5F] rounded-tl-xl"></div>
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#FF5A5F] rounded-tr-xl"></div>
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#FF5A5F] rounded-bl-xl"></div>
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#FF5A5F] rounded-br-xl"></div>
-            </div>
-
-            <p className="relative z-20 text-white text-sm font-medium mt-8 px-6 py-2 bg-black/20 backdrop-blur-md rounded-full">
-              Posisikan QR Code di dalam kotak
-            </p>
+    <div className="fixed inset-0 bg-black flex justify-center z-50">
+      {/* Container Utama untuk Mobile Viewport */}
+      <div className="w-full max-w-md relative flex flex-col overflow-hidden bg-black">
+        
+        {/* HEADER (Floating) */}
+        <header className="absolute top-0 left-0 w-full flex items-center px-6 py-8 z-30">
+          <button 
+            onClick={() => router.back()} 
+            className="p-2 bg-white/10 backdrop-blur-xl rounded-2xl text-white border border-white/20 active:scale-90 transition-transform"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div className="ml-4">
+            <h1 className="text-lg font-bold text-white tracking-tight leading-none">Scan QR Mesin</h1>
+            <p className="text-[10px] text-white/50 uppercase tracking-widest mt-1 font-bold">Authentication Mode</p>
           </div>
+        </header>
 
-          {error && (
-            <div className="absolute bottom-10 left-6 right-6 z-30 bg-red-500 text-white p-4 rounded-2xl flex items-center gap-3 animate-bounce">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-bold">{error}</span>
+        {!scannedId ? (
+          <div className="relative w-full h-full">
+            {/* VIDEO FEED */}
+            <div id="reader" className="w-full h-full [&_video]:object-cover"></div>
+
+            {/* OVERLAY DESIGN */}
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+              {/* Lubang Fokus (Hole Punch Effect) */}
+              <div className="w-72 h-72 relative">
+                {/* Garis Sudut Modern */}
+                <div className="absolute -top-1 -left-1 w-10 h-10 border-t-4 border-l-4 border-[#FF5A5F] rounded-tl-3xl"></div>
+                <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-[#FF5A5F] rounded-tr-3xl"></div>
+                <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-[#FF5A5F] rounded-bl-3xl"></div>
+                <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-[#FF5A5F] rounded-br-3xl"></div>
+                
+                {/* Animasi Garis Scan */}
+                <div className="w-full h-1 bg-gradient-to-r from-transparent via-[#FF5A5F] to-transparent shadow-[0_0_15px_#FF5A5F] animate-scan-move absolute top-0"></div>
+              </div>
+
+              {/* Teks Petunjuk */}
+              <div className="mt-12 px-6 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-3">
+                <ScanLine className="w-4 h-4 text-[#FF5A5F] animate-pulse" />
+                <p className="text-white text-xs font-medium tracking-wide">Posisikan kode di dalam area kotak</p>
+              </div>
             </div>
-          )}
-        </div>
-      ) : (
-        /* TAMPILAN PEMILIHAN STATUS (MODERN CARD) */
-        <div className="absolute inset-0 bg-[#F8FAFC] z-40 flex flex-col animate-in slide-in-from-bottom duration-500">
-           <div className="flex-grow p-8 flex flex-col items-center justify-center">
-              <div className="bg-green-100 p-4 rounded-full mb-6">
+
+            {error && (
+              <div className="absolute bottom-10 left-6 right-6 z-30 bg-red-500/90 backdrop-blur-lg text-white p-4 rounded-3xl flex items-center gap-3 animate-bounce shadow-2xl">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-tight">{error}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ACTION SCREEN (Setelah Berhasil Scan) */
+          <div className="absolute inset-0 bg-[#F8FAFC] z-40 flex flex-col animate-in slide-in-from-bottom duration-500">
+            <div className="flex-grow p-8 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-2">{machineName}</h2>
-              <p className="text-slate-400 mb-10 text-center">Tentukan status operasional mesin incinerator saat ini</p>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{machineName}</h2>
+              <p className="text-slate-400 text-sm font-medium mb-10">Pilih status operasional mesin incinerator</p>
 
-              <div className="grid grid-cols-1 w-full gap-4">
+              <div className="w-full space-y-4">
+                {/* Pilihan ON */}
                 <button 
                   onClick={() => setSelectedStatus('on')}
-                  className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${
-                    selectedStatus === 'on' ? 'border-green-500 bg-green-50' : 'border-slate-100 bg-white'
+                  className={`w-full p-5 rounded-[2.5rem] border-2 flex items-center justify-between transition-all active:scale-[0.98] ${
+                    selectedStatus === 'on' ? 'border-green-500 bg-green-50/50 shadow-lg shadow-green-100' : 'border-slate-100 bg-white text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-2xl ${selectedStatus === 'on' ? 'bg-green-500 text-white' : 'bg-slate-50 text-slate-300'}`}>
+                    <div className={`p-4 rounded-2xl ${selectedStatus === 'on' ? 'bg-green-500 text-white' : 'bg-slate-50'}`}>
                       <Power className="w-6 h-6" />
                     </div>
-                    <span className={`font-bold text-lg ${selectedStatus === 'on' ? 'text-green-700' : 'text-slate-400'}`}>Mesin ON</span>
+                    <span className={`text-lg font-bold ${selectedStatus === 'on' ? 'text-green-900' : 'text-slate-400'}`}>Mesin Hidup (ON)</span>
                   </div>
-                  {selectedStatus === 'on' && <CheckCircle2 className="text-green-500" />}
+                  {selectedStatus === 'on' && <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
                 </button>
 
+                {/* Pilihan OFF */}
                 <button 
                   onClick={() => setSelectedStatus('off')}
-                  className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${
-                    selectedStatus === 'off' ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-white'
+                  className={`w-full p-5 rounded-[2.5rem] border-2 flex items-center justify-between transition-all active:scale-[0.98] ${
+                    selectedStatus === 'off' ? 'border-red-500 bg-red-50/50 shadow-lg shadow-red-100' : 'border-slate-100 bg-white text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-2xl ${selectedStatus === 'off' ? 'bg-red-500 text-white' : 'bg-slate-50 text-slate-300'}`}>
+                    <div className={`p-4 rounded-2xl ${selectedStatus === 'off' ? 'bg-red-500 text-white' : 'bg-slate-50'}`}>
                       <Power className="w-6 h-6" />
                     </div>
-                    <span className={`font-bold text-lg ${selectedStatus === 'off' ? 'text-red-700' : 'text-slate-400'}`}>Mesin OFF</span>
+                    <span className={`text-lg font-bold ${selectedStatus === 'off' ? 'text-red-900' : 'text-slate-400'}`}>Mesin Mati (OFF)</span>
                   </div>
-                  {selectedStatus === 'off' && <CheckCircle2 className="text-red-500" />}
+                  {selectedStatus === 'off' && <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
                 </button>
               </div>
-           </div>
+            </div>
 
-           <div className="p-8 bg-white border-t border-slate-100 rounded-t-[40px] shadow-2xl">
+            <div className="p-8 pb-12 bg-white border-t border-slate-100 rounded-t-[3.5rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)]">
               <button 
                 onClick={handleConfirmStatus}
                 disabled={isUpdating}
-                className="w-full bg-[#FF5A5F] hover:bg-[#ff484d] text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-red-200"
+                className="w-full bg-[#FF5A5F] hover:bg-[#ff484d] text-white font-black py-5 rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-red-200/50 active:scale-95 transition-transform"
               >
-                {isUpdating ? <Loader2 className="animate-spin" /> : 'SIMPAN PERUBAHAN'}
+                {isUpdating ? <Loader2 className="animate-spin" /> : 'KONFIRMASI STATUS'}
               </button>
-              <button onClick={() => window.location.reload()} className="w-full mt-4 text-slate-400 font-bold py-2">
+              <button onClick={() => window.location.reload()} className="w-full mt-4 text-slate-400 font-bold text-sm tracking-wider uppercase">
                 Batal & Scan Ulang
               </button>
-           </div>
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* CSS KHUSUS UNTUK ANIMASI SCAN LINE (Tambahkan di globals.css jika ingin lebih rapi) */}
       <style jsx>{`
-        @keyframes scan {
-          0% { top: 0; }
-          100% { top: 100%; }
+        @keyframes scan-move {
+          0% { top: 0; opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
         }
-        .animate-scan-line {
-          animation: scan 2s linear infinite;
+        .animate-scan-move {
+          animation: scan-move 2.5s ease-in-out infinite;
         }
         :global(#reader video) {
+          width: 100% !important;
+          height: 100% !important;
           object-fit: cover !important;
         }
       `}</style>

@@ -83,9 +83,8 @@ export default function DashboardPage() {
   const inactiveMachines = machines.filter(m => m.status === 'off').length;
 
   return (
-    <div className="w-full min-h-screen pb-28 flex flex-col relative">
-      <div className="px-6 py-6 space-y-8 flex-grow overflow-y-auto">
-        
+    <div className="min-h-screen bg-[#F8FAFC] flex justify-center">
+    <div className="w-full max-w-md bg-white min-h-screen flex flex-col relative shadow-lg">
         {/* GREETING */}
         <div>
           <p className="text-sm font-medium text-[#B84A4A] mb-1">Good Morning, Waste Officer</p>

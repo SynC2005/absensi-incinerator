@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Civic Flow App",
   description: "Aplikasi Absensi & Monitoring Incinerator",
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1', // Tambahkan ini
 };
 
 export default function RootLayout({
