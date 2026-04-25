@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Pastikan container reader memenuhi layar */
+#reader {
+  width: 100% !important;
+  height: 100% !important;
+  background-color: black;
+}
+
+/* Paksa elemen video di dalamnya untuk memenuhi layar tanpa merusak rasio */
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important; /* Ini kuncinya agar kamera memenuhi layar */
+   transform: none !important; /* Menghilangkan efek cermin jika ada */
+}
