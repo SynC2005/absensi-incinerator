@@ -47,8 +47,8 @@ export default function AddMachinePage() {
   // Load Google Maps dengan plugin 'places' untuk fitur Search
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyDm6ham3iGxylNfI82WyNFkecHcKrtAjP4",
-    libraries: libraries,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string, // Gunakan env variable
+  libraries: libraries,
   });
 
   // --- LOGIKA PETA ---

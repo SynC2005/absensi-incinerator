@@ -45,10 +45,11 @@ export default function ScanPage() {
   }
 };
       // Mulai kamera (menggunakan kamera belakang secara otomatis)
-      html5QrCode.start(
+     html5QrCode.start(
         { facingMode: "environment" }, 
-        config, 
-        onScanSuccess
+        config as any, 
+        onScanSuccess as any,
+        () => {} // <--- Tambahkan ini sebagai argumen ke-4 (onScanFailure)
       ).catch((err) => {
         console.error("Gagal memulai kamera:", err);
         setError("Izin kamera ditolak atau tidak ditemukan.");

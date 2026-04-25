@@ -37,8 +37,8 @@ export default function DashboardPage() {
   // Load Google Maps API
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyDm6ham3iGxylNfI82WyNFkecHcKrtAjP4", // <--- GANTI INI DENGAN API KEY ANDA
-    libraries: libraries,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string, // Gunakan env variable
+  libraries: libraries,
   });
 
   // --- FUNGSI MENGAMBIL DATA DARI SUPABASE ---
