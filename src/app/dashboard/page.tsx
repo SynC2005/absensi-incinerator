@@ -207,7 +207,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex justify-between items-center mb-3 mt-6">
                 <h2 className="text-base font-black text-slate-800 tracking-tight">Daftar Unit Mesin</h2>
-                <Link href="/data" className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest hover:underline">
+                <Link href="/machines" className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest hover:underline">
                   Lihat Semua
                 </Link>
               </div>
