@@ -1,50 +1,48 @@
 // File: src/components/MachineCard.tsx
-import { MapPin } from 'lucide-react';
+import { MapPin, Activity, PowerOff } from 'lucide-react';
 
-// Menentukan tipe data yang dibutuhkan oleh komponen ini
 interface MachineCardProps {
   name: string;
   lat: number;
   lng: number;
   status: string;
+  lokasi?: string; // Tambahkan opsional lokasi jika ada teks alamat
 }
 
-export default function MachineCard({ name, lat, lng, status }: MachineCardProps) {
+export default function MachineCard({ name, lat, lng, status, lokasi }: MachineCardProps) {
   return (
-    <div className="bg-white rounded-[2rem] p-5 flex items-center justify-between shadow-sm border border-emerald-50 hover:shadow-md hover:border-emerald-100 transition-all group">
-      <div className="flex items-center gap-4">
-        {/* Ikon MapPin */}
-        <div className={`p-4 rounded-2xl border group-hover:scale-110 transition-transform ${
-          status === 'on' 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <MapPin className={`w-6 h-6 ${status === 'on' ? 'text-green-600' : 'text-red-500'}`} />
-        </div>
-        
-        {/* Nama dan Koordinat */}
-        <div>
-          <h3 className="font-bold text-foreground text-lg leading-tight mb-1">
-            {name}
-          </h3>
-          <p className="text-[10px] text-emerald-800/40 font-black uppercase tracking-widest">
-            {lat.toFixed(4)}, {lng.toFixed(4)}
-          </p>
-        </div>
+    <div className="bg-white rounded-[1.75rem] px-4 py-3.5 border border-slate-100 shadow-sm flex items-center gap-3 hover:shadow-md transition-all group">
+      
+      {/* Container Ikon dengan Indikator ON/OFF */}
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-transform group-hover:scale-105 ${
+        status === 'on'
+          ? 'bg-green-50 border-green-200'
+          : 'bg-red-50 border-red-200'
+      }`}>
+        {status === 'on'
+          ? <Activity className="w-5 h-5 text-green-500" />
+          : <PowerOff className="w-5 h-5 text-red-500" />
+        }
       </div>
-
-      {/* Indikator Status ON/OFF */}
-      <div>
-        {status === 'on' ? (
-          <div className="bg-green-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black tracking-widest shadow-lg shadow-green-500/20">
-            AKTIF
-          </div>
-        ) : (
-          <div className="bg-red-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black tracking-widest shadow-lg shadow-red-500/20">
-            MATI
-          </div>
-        )}
+      
+      {/* Info Nama & Lokasi / Koordinat */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] font-bold text-slate-800 truncate leading-tight">
+          {name || 'Mesin Incinerator'}
+        </p>
+        <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate uppercase tracking-tight">
+          {lokasi || `${lat.toFixed(4)}, ${lng.toFixed(4)}`}
+        </p>
       </div>
+      
+      {/* Badge Status */}
+      <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0 border ${
+        status === 'on'
+          ? 'bg-green-50 text-green-600 border-green-200 shadow-sm shadow-green-100'
+          : 'bg-red-50 text-red-500 border-red-200'
+      }`}>
+        {status === 'on' ? 'Aktif' : 'Mati'}
+      </span>
     </div>
   );
 }
