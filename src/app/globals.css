@@ -1,21 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F0F4F2;
+  --foreground: #064E3B;
+  --primary: #065F46;
+  --primary-foreground: #ffffff;
+  --secondary: #D1FAE5;
+  --accent: #34D399;
+  --muted: #F0F4F2;
+  --card: #ffffff;
+  --card-foreground: #064E3B;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  
+  --font-sans: 'Plus Jakarta Sans', var(--font-geist-sans), ui-sans-serif, system-ui;
   --font-mono: var(--font-geist-mono);
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #022C22;
+    --foreground: #ECFDF5;
+    --primary: #10B981;
+    --primary-foreground: #022C22;
+    --secondary: #064E3B;
+    --accent: #34D399;
+    --muted: #065F46;
+    --card: #064E3B;
+    --card-foreground: #ECFDF5;
+  }
+  .glass {
+    background: rgba(6, 78, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -34,6 +68,10 @@
    transform: none !important; /* Menghilangkan efek cermin jika ada */
 }
 
+.dashboard-map .gm-style-cc {
+  margin-bottom: 6px !important;
+}
+
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
@@ -44,7 +82,7 @@ html, body {
 body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  background-color: #F8FAFC;
+  background-color: #F0F4F2;
 }
 
 /* Fix untuk bug layar memanjang */
