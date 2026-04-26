@@ -1,133 +1,159 @@
 // File: src/app/data/page.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { 
   Calendar, 
   ChevronDown, 
   Download, 
-  Clock, 
   Plus,
-  Wrench,
-  CheckCircle2,
-  XCircle
+  User,
+  Zap,
+  Scale,
+  History,
+  Loader2
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
-// Data Dummy
-const logsData = [
-  { id: 1, unit: 'WM-UNIT-01', status: 'Off', weight: 12.5, operator: 'Bpk. Ahmad', time: '14:30 | 25 Oktober 2024' },
-  { id: 2, unit: 'WM-UNIT-04', status: 'Off', weight: 8.2, operator: 'Bpk. Ahmad', time: '11:15 | 25 Oktober 2024' },
-  { id: 3, unit: 'WM-UNIT-01', status: 'On', weight: 15.0, operator: 'Ibu Siti', time: '09:45 | 25 Oktober 2024' },
-  { id: 4, unit: 'WM-UNIT-02', status: 'Off', weight: 5.7, operator: 'Bpk. Ahmad', time: '08:20 | 25 Oktober 2024' },
-];
-
 export default function DataPage() {
-  return (
-    <div className="min-h-svh bg-[#F0F4F2] flex justify-center font-sans overflow-x-hidden">
-      
-      {/* Container utama */}
-      <div className="w-full max-w-[26rem] sm:max-w-md flex flex-col relative z-10">
+  const [logs, setLogs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-        <div className="px-5 pt-5 sm:px-6 sm:pt-6 pb-32 flex-grow space-y-6">
+  useEffect(() => {
+    const fetchLogs = async () => {
+      // Ambil data log dari database (urut dari yang paling baru)
+      const { data, error } = await supabase
+        .from('aktivitas_log')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Gagal memuat log:", error.message);
+      } else if (data) {
+        // Konversi format database agar sesuai dengan desain UI Timeline kita
+        const formattedLogs = data.map((item: any) => {
+          // Ambil jam dan menit saja dari timestamp (contoh: "14:30")
+          const timeString = new Date(item.created_at).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          // Tentukan ikon warna dari isi keterangan log
+          let logType = 'system';
+          if (item.aksi === 'Input Berat') logType = 'weight';
+          else if (item.keterangan.includes('ON')) logType = 'status-on';
+          else if (item.keterangan.includes('OFF')) logType = 'status-off';
+
+          return {
+            id: item.id,
+            time: timeString,
+            operator: item.operator_name || 'Operator',
+            action: item.aksi === 'Input Berat' ? 'Memasukkan data berat' : item.nama_mesin,
+            value: item.keterangan,
+            type: logType
+          };
+        });
+
+        setLogs(formattedLogs);
+      }
+      setIsLoading(false);
+    };
+
+    fetchLogs();
+  }, []);
+
+  return (
+    <div className="min-h-svh bg-[#F8FAFC] flex justify-center font-sans overflow-x-hidden">
+      <div className="w-full max-w-md flex flex-col relative z-10">
+        <div className="px-6 pt-10 pb-40 flex-grow space-y-8">
           
-          <header className="relative px-1 mb-2">
-            <h1 className="text-3xl font-black text-emerald-950 tracking-tight leading-[1.1]">Log<br/><span className="text-emerald-700">Aktivitas</span></h1>
+          <header className="px-1">
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-2">Activity Stream</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">Log Aktivitas</h1>
           </header>
 
-          {/* FILTER & DOWNLOAD SECTION */}
-          <section className="space-y-3">
-            {/* Date Filter Card */}
-            <div className="bg-white border border-emerald-50 p-3 rounded-[1.25rem] flex items-center justify-between shadow-sm cursor-pointer hover:bg-emerald-50/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-700">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-emerald-800/40 uppercase tracking-widest mb-0.5">Periode Laporan</p>
-                  <p className="text-sm font-black text-emerald-950">Hari ini, 25 Okt 2024</p>
-                </div>
+          {/* FILTER & EXPORT */}
+          <section className="grid grid-cols-2 gap-3">
+            <div className="bg-white border border-slate-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-emerald-500" />
+                <span className="text-[11px] font-bold text-slate-700">Hari ini</span>
               </div>
-              <ChevronDown className="w-5 h-5 text-emerald-800/30 mr-2" />
+              <ChevronDown className="w-3 h-3 text-slate-300" />
             </div>
-
-            {/* Download Button */}
-            <button className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black py-4 rounded-[1.25rem] flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-xl shadow-emerald-900/10 text-[11px] uppercase tracking-widest">
-              <Download className="w-4 h-4" />
-              <span>EKSPOR DATA</span>
+            <button className="bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-200">
+              <Download className="w-3 h-3" /> Ekspor
             </button>
           </section>
 
-          {/* DATA LOGS LIST */}
-          <section className="space-y-4 mt-8">
-            <h2 className="text-[11px] font-black text-emerald-800/40 uppercase tracking-widest px-2 mb-1">Aktivitas Terbaru</h2>
-            <div className="flex flex-col gap-3">
-              {logsData.map((log) => (
-                <div key={log.id} className={`bg-white rounded-[1.5rem] p-5 shadow-xl shadow-emerald-900/5 border-l-4 relative overflow-hidden group transition-colors ${
-                  log.status === 'On' 
-                    ? 'border-l-green-500 hover:border-green-200' 
-                    : 'border-l-red-500 hover:border-red-200'
-                }`}>
-                  
-                  {/* Decorative Blob */}
-                  {log.status === 'On' && <div className="absolute top-0 right-0 w-20 h-20 bg-green-50 rounded-full blur-xl -mr-10 -mt-10"></div>}
-                  {log.status === 'Off' && <div className="absolute top-0 right-0 w-20 h-20 bg-red-50 rounded-full blur-xl -mr-10 -mt-10"></div>}
+          {/* TIMELINE SECTION */}
+          <section className="relative pl-2">
+            <div className="absolute left-[45px] top-4 bottom-0 w-[2px] bg-slate-100"></div>
 
-                  {/* Header Card: Unit & Status */}
-                  <div className="flex justify-between items-center mb-4 relative z-10">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${log.status === 'On' ? 'bg-green-50' : 'bg-red-50'}`}>
-                        <Wrench className={`w-4 h-4 ${log.status === 'On' ? 'text-green-600' : 'text-red-500'}`} />
-                      </div>
-                      <span className="font-black text-emerald-950 tracking-tight">{log.unit}</span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${
-                      log.status === 'On' 
-                        ? 'bg-green-50 text-green-600 border border-green-200' 
-                        : 'bg-red-50 text-red-500 border border-red-200'
-                    }`}>
-                      {log.status === 'On' 
-                        ? <><CheckCircle2 className="w-3 h-3" /> Aktif</>
-                        : <><XCircle className="w-3 h-3" /> Mati</>
-                      }
-                    </span>
-                  </div>
-
-                  {/* Content Card: Weight & Operator */}
-                  <div className="flex justify-between items-end mb-4 relative z-10 px-1">
-                    <div>
-                      <p className="text-[10px] font-bold text-emerald-800/40 uppercase tracking-widest mb-1">Sampah Diproses</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-emerald-950 tracking-tighter">{log.weight}</span>
-                        <span className="text-sm font-bold text-emerald-500">kg</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-emerald-800/40 uppercase tracking-widest mb-1">Operator</p>
-                      <p className="text-sm font-bold text-emerald-900">{log.operator}</p>
-                    </div>
-                  </div>
-
-                  {/* Footer Card: Timestamp */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-emerald-50 text-emerald-800/40 relative z-10 px-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-bold tracking-wider">{log.time}</span>
-                  </div>
-
+            <div className="space-y-8 relative">
+              {isLoading ? (
+                // Animasi Loading
+                <div className="flex justify-center items-center py-10">
+                  <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
                 </div>
-              ))}
+              ) : logs.length === 0 ? (
+                // State Kosong jika belum ada aktivitas
+                <div className="text-center py-10 bg-white rounded-3xl border border-slate-100 shadow-sm relative z-10 ml-12">
+                  <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-slate-400">Belum ada aktivitas tercatat.</p>
+                </div>
+              ) : (
+                // Mapping Data Dinamis
+                logs.map((log) => (
+                  <div key={log.id} className="flex items-start gap-4 group">
+                    <div className="w-12 pt-1 flex-shrink-0">
+                      <span className="text-[11px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors">
+                        {log.time}
+                      </span>
+                    </div>
+
+                    <div className={`relative z-10 w-4 h-4 rounded-full border-4 border-[#F8FAFC] mt-1.5 flex-shrink-0 ${
+                      log.type === 'status-on' ? 'bg-green-500' : 
+                      log.type === 'status-off' ? 'bg-orange-500' : 
+                      log.type === 'weight' ? 'bg-emerald-500' : 'bg-blue-500'
+                    }`}></div>
+
+                    <div className="flex-grow bg-white border border-slate-50 p-4 rounded-3xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3 h-3 text-slate-300" />
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{log.operator}</span>
+                        </div>
+                        
+                        {log.type === 'weight' && <Scale className="w-3.5 h-3.5 text-emerald-500" />}
+                        {log.type.includes('status') && <Zap className={`w-3.5 h-3.5 ${log.type === 'status-on' ? 'text-green-500' : 'text-orange-500'}`} />}
+                        {log.type === 'system' && <History className="w-3.5 h-3.5 text-blue-500" />}
+                      </div>
+
+                      <div className="flex flex-wrap items-baseline gap-1.5">
+                        <p className="text-[13px] font-medium text-slate-600">{log.action}:</p>
+                        <p className={`text-sm font-black tracking-tight ${
+                          log.type === 'status-on' ? 'text-green-600' : 
+                          log.type === 'status-off' ? 'text-orange-600' : 
+                          'text-slate-900'
+                        }`}>
+                          {log.value}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
-
         </div>
 
-        {/* FLOATING ACTION BUTTON (+) */}
-        <button className="fixed bottom-[100px] right-6 sm:absolute sm:bottom-28 sm:right-6 bg-emerald-500 hover:bg-emerald-400 text-white p-4 rounded-2xl shadow-xl shadow-emerald-500/30 transition-transform active:scale-95 z-30">
+        <button className="fixed bottom-28 right-6 bg-emerald-600 text-white p-4 rounded-2xl shadow-xl shadow-emerald-200 active:scale-90 transition-transform z-30">
           <Plus className="w-6 h-6" />
         </button>
 
-        {/* BOTTOM NAVIGATION */}
         <BottomNav />
-        
       </div>
     </div>
   );
