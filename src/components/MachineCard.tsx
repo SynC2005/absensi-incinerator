@@ -11,20 +11,24 @@ interface MachineCardProps {
 
 export default function MachineCard({ name, lat, lng, status }: MachineCardProps) {
   return (
-    <div className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-[2rem] p-5 flex items-center justify-between shadow-sm border border-emerald-50 hover:shadow-md hover:border-emerald-100 transition-all group">
       <div className="flex items-center gap-4">
         {/* Ikon MapPin */}
-        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-          <MapPin className="w-6 h-6 text-slate-400" />
+        <div className={`p-4 rounded-2xl border group-hover:scale-110 transition-transform ${
+          status === 'on' 
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <MapPin className={`w-6 h-6 ${status === 'on' ? 'text-green-600' : 'text-red-500'}`} />
         </div>
         
         {/* Nama dan Koordinat */}
         <div>
-          <h3 className="font-medium text-slate-800 text-lg leading-tight mb-1">
+          <h3 className="font-bold text-foreground text-lg leading-tight mb-1">
             {name}
           </h3>
-          <p className="text-xs text-slate-400 font-medium tracking-wide">
-            {lat}, {lng}
+          <p className="text-[10px] text-emerald-800/40 font-black uppercase tracking-widest">
+            {lat.toFixed(4)}, {lng.toFixed(4)}
           </p>
         </div>
       </div>
@@ -32,12 +36,12 @@ export default function MachineCard({ name, lat, lng, status }: MachineCardProps
       {/* Indikator Status ON/OFF */}
       <div>
         {status === 'on' ? (
-          <div className="bg-green-50 text-green-600 border border-green-100 px-4 py-2 rounded-xl text-xs font-bold tracking-wider">
-            ON
+          <div className="bg-green-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black tracking-widest shadow-lg shadow-green-500/20">
+            AKTIF
           </div>
         ) : (
-          <div className="bg-red-50 text-red-500 border border-red-100 px-4 py-2 rounded-xl text-xs font-bold tracking-wider">
-            OFF
+          <div className="bg-red-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black tracking-widest shadow-lg shadow-red-500/20">
+            MATI
           </div>
         )}
       </div>
