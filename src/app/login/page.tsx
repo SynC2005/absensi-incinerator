@@ -1,9 +1,10 @@
 // File: src/app/login/page.tsx
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Building2, HelpCircle, Factory, ShieldCheck, Headset } from 'lucide-react';
+import { Leaf, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -12,106 +13,118 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // WAJIB: Arahkan ke rute callback
-          redirectTo: `${window.location.origin}/auth/callback`, 
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
+
       if (error) throw error;
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan saat login.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
-      <header className="w-full bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10">
-        <div className="flex items-center gap-2 text-red-500">
-          <Building2 className="w-6 h-6" />
-          <span className="font-bold text-lg text-slate-900 tracking-tight">UtilityConnect</span>
-        </div>
-        <button className="text-slate-400 hover:text-slate-600 transition-colors">
-          <HelpCircle className="w-6 h-6" />
-        </button>
-      </header>
+    <div className="min-h-svh w-full bg-[#F0F4F2] text-emerald-950 flex justify-center items-start font-sans relative overflow-hidden px-3 py-4 sm:items-center sm:py-6">
 
-      <main className="flex-grow flex flex-col items-center py-12 px-4 sm:px-6">
-        <div className="flex items-center justify-center gap-8 mb-8">
-          <img src="/image_1.png" alt="Telkom University" className="h-14 w-auto object-contain drop-shadow-sm" />
-          <img src="/image_2.png" alt="Sea Lab 1" className="h-14 w-auto object-contain drop-shadow-sm" />
-          <img src="/image_3.png" alt="Sea Lab 2" className="h-14 w-auto object-contain drop-shadow-sm" />
-        </div>
+      {/* Dynamic Background Elements to fill empty space */}
+      <div className="absolute top-[-8rem] left-[-8rem] w-72 h-72 bg-emerald-300/35 rounded-full mix-blend-multiply blur-[70px] animate-blob sm:w-96 sm:h-96"></div>
+      <div className="absolute top-[10rem] right-[-7rem] w-64 h-64 bg-emerald-300/35 rounded-full mix-blend-multiply blur-[70px] animate-blob animation-delay-2000 sm:w-72 sm:h-72"></div>
+      <div className="absolute bottom-[-8rem] left-[10%] w-64 h-64 bg-emerald-200/40 rounded-full mix-blend-multiply blur-[70px] animate-blob animation-delay-4000 sm:w-80 sm:h-80"></div>
 
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
-            <Factory className="w-10 h-10 text-[#FF4F4F]" />
-          </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3 tracking-tight">Halo, Warga!</h1>
-          <p className="text-slate-500 text-lg max-w-sm leading-relaxed">
-            Silakan masuk untuk mencatat kehadiran Anda di fasilitas pengolahan limbah.
-          </p>
-        </div>
+      <div className="w-full max-w-[26rem] flex flex-col relative z-10">
 
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-sm p-8 mb-8 text-center">
-          <h2 className="text-slate-800 font-semibold mb-6">Akses Masuk Terpusat</h2>
+        {/* HERO SECTION */}
+        <div className="bg-emerald-800 rounded-[2rem] px-5 pt-6 pb-16 relative overflow-hidden shadow-2xl shadow-emerald-900/20 sm:rounded-[2.5rem] sm:px-6 sm:pt-10 sm:pb-20">
+          {/* Subtle overlay pattern/icon */}
+          <Leaf className="absolute -bottom-8 -right-8 w-48 h-48 text-emerald-700/30 -rotate-12 sm:-bottom-10 sm:-right-10 sm:w-64 sm:h-64" />
 
-          {error && (
-            <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 text-center">
-              {error}
+          <header className="flex justify-between items-center mb-7 relative z-10 sm:mb-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-[0.85rem] shadow-lg flex items-center justify-center p-1.5 border border-white/20 overflow-hidden">
+                <Image src="/logo-reburn.jpeg" alt="reburn Logo" width={40} height={40} className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-white leading-none tracking-wide">Reburn</p>
+                <p className="text-[10px] text-emerald-200 font-medium mt-1 tracking-widest uppercase">Dashboard Aplikasi </p>
+              </div>
             </div>
-          )}
+          </header>
 
-          <button 
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-4 px-4 rounded-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] hover:shadow-sm"
-          >
-            <img src="https://www.google.com/images/branding/product/2x/googleg_32dp.png" alt="Google" className="w-6 h-6" />
-            <span className="text-base">{loading ? 'Menghubungkan...' : 'Lanjutkan dengan Google'}</span>
-          </button>
-          
-          <p className="text-xs text-slate-400 mt-6 leading-relaxed">
-            Dengan masuk, Anda menyetujui kebijakan privasi dan persyaratan layanan portal UtilityConnect.
-          </p>
-        </div>
-
-        <div className="w-full max-w-md space-y-4">
-          <div className="bg-slate-200/50 p-5 rounded-2xl flex items-start gap-4">
-            <div className="bg-[#EAE1DF] p-2.5 rounded-lg shrink-0 mt-0.5">
-              <ShieldCheck className="w-6 h-6 text-[#A05E49]" />
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-900/50 border border-emerald-700/50 mb-3 sm:mb-4">
+              <ShieldCheck className="w-3 h-3 text-emerald-300" />
+              <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Portal Kelola</span>
             </div>
-            <div>
-              <h3 className="font-medium text-slate-800 mb-1">Keamanan Terjamin</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">Data kehadiran Anda tersimpan dengan enkripsi standar industri.</p>
-            </div>
-          </div>
-
-          <div className="bg-slate-200/50 p-5 rounded-2xl flex items-start gap-4">
-            <div className="bg-[#DCE7F3] p-2.5 rounded-lg shrink-0 mt-0.5">
-              <Headset className="w-6 h-6 text-[#3B69A1]" />
-            </div>
-            <div>
-              <h3 className="font-medium text-slate-800 mb-1">Butuh Bantuan?</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">Tim dukungan kami siap membantu Anda 24/7 jika ada kendala.</p>
-            </div>
+            <h1 className="text-[2rem] font-black text-white mb-2 tracking-tight leading-[1.05] sm:text-[2.2rem] sm:tracking-tighter">
+              Monitoring <br /> <span className="text-emerald-300">Insinerator Sampah</span>
+            </h1>
+            <p className="text-emerald-100/80 text-[13px] sm:text-sm max-w-[280px] leading-relaxed">
+              Pantau performa pembakaran, status unit operasional, dan riwayat data secara terpusat.
+            </p>
           </div>
         </div>
-      </main>
 
-      <footer className="w-full bg-[#F8FAFC] py-10 flex flex-col items-center border-t border-slate-200 mt-auto">
-        <h4 className="font-bold text-slate-900 mb-6">UtilityConnect Management.</h4>
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm text-slate-500 mb-8">
-          <a href="#" className="hover:text-slate-800 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-slate-800 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-slate-800 transition-colors">Accessibility</a>
-          <a href="#" className="hover:text-slate-800 transition-colors">Contact Support</a>
+        <div className="flex-grow px-3 flex flex-col -mt-12 relative z-20 sm:px-6 sm:-mt-16">
+
+          {/* LOGIN CARD (Floating) */}
+          <section className="rounded-[1.75rem] bg-white p-5 shadow-2xl shadow-emerald-900/10 border border-white/50 backdrop-blur-xl mb-5 sm:rounded-[2rem] sm:p-6 sm:mb-8">
+            <div className="flex items-center gap-3 mb-5 sm:mb-6">
+              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-emerald-950 tracking-tight">Masuk ke Sistem</h2>
+                <p className="text-[11px] text-emerald-700/60 font-medium">Gunakan akun google yang terdaftar</p>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mb-5 p-4 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100 text-center animate-pulse">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full min-h-14 bg-emerald-950 hover:bg-emerald-900 text-white font-black py-3.5 px-4 rounded-[1.25rem] flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait shadow-xl shadow-emerald-900/20 group sm:py-4 sm:px-5"
+            >
+              <div className="bg-white p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
+                <Image src="https://www.google.com/images/branding/product/2x/googleg_32dp.png" alt="Google" width={20} height={20} className="w-5 h-5" />
+              </div>
+              <span className="text-sm tracking-wide">{loading ? 'Menghubungkan...' : 'Lanjutkan dengan Google'}</span>
+            </button>
+
+            <p className="text-[10px] text-emerald-900/40 mt-5 leading-relaxed text-center font-semibold">
+              Akses untuk mitra dan pengelola program
+            </p>
+          </section>
+
+          {/* SPONSOR LOGOS */}
+          <section className="mt-2 mb-4 sm:mt-4 sm:mb-6">
+            <p className="text-[10px] text-center text-emerald-800/40 font-bold uppercase tracking-[0.2em] mb-3 sm:mb-4">Didukung Oleh</p>
+            <div className="flex items-center justify-center gap-4 bg-white/60 backdrop-blur-sm rounded-3xl py-3 px-4 border border-white/40 shadow-sm sm:gap-6 sm:py-4 sm:px-6">
+              <Image src="/ic_telkom_univ.webp" alt="Telkom University" width={48} height={48} className="h-7 w-auto object-contain hover:scale-110 transition-transform sm:h-8" priority />
+              <Image src="/logosea.webp" alt="SEA Laboratory" width={80} height={48} className="h-7 w-auto object-contain hover:scale-110 transition-transform sm:h-8" priority />
+              <Image src="/logoinacos.webp" alt="INACOS" width={80} height={48} className="h-7 w-auto object-contain hover:scale-110 transition-transform sm:h-8" priority />
+            </div>
+          </section>
+
+          <footer className="pb-2 text-center">
+            <p className="text-[9px] text-emerald-800/30 font-black uppercase tracking-[0.15em]">
+              (c) 2026 ReBurn  | Telkom University
+            </p>
+          </footer>
         </div>
-        <p className="text-slate-400 text-sm text-center px-4 max-w-sm">© 2024 UtilityConnect Management. Trusted Industrial Service.</p>
-      </footer>
+      </div>
     </div>
   );
 }
+
+
