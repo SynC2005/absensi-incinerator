@@ -77,9 +77,8 @@ export default function ScanPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex justify-center z-50">
-      {/* Container Utama untuk Mobile Viewport */}
-      <div className="w-full max-w-md relative flex flex-col overflow-hidden bg-black">
+    <div className="fixed inset-0 bg-black flex justify-center z-50 font-sans">
+      <div className="w-full max-w-[26rem] sm:max-w-md relative flex flex-col overflow-hidden bg-black">
         
         {/* HEADER (Floating) */}
         <header className="absolute top-0 left-0 w-full flex items-center px-6 py-8 z-30">
@@ -90,8 +89,11 @@ export default function ScanPage() {
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div className="ml-4">
-            <h1 className="text-lg font-bold text-white tracking-tight leading-none">Scan QR Mesin</h1>
-            <p className="text-[10px] text-white/50 uppercase tracking-widest mt-1 font-bold">Authentication Mode</p>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-[9px] font-bold text-emerald-200 uppercase tracking-widest">Mode Verifikasi</span>
+            </div>
+            <h1 className="text-lg font-black text-white tracking-tight leading-none">Pindai QR Fasilitas</h1>
           </div>
         </header>
 
@@ -104,25 +106,25 @@ export default function ScanPage() {
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
               {/* Lubang Fokus (Hole Punch Effect) */}
               <div className="w-72 h-72 relative">
-                {/* Garis Sudut Modern */}
-                <div className="absolute -top-1 -left-1 w-10 h-10 border-t-4 border-l-4 border-[#FF5A5F] rounded-tl-3xl"></div>
-                <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-[#FF5A5F] rounded-tr-3xl"></div>
-                <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-[#FF5A5F] rounded-bl-3xl"></div>
-                <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-[#FF5A5F] rounded-br-3xl"></div>
+                {/* Garis Sudut Emerald Modern */}
+                <div className="absolute -top-1 -left-1 w-10 h-10 border-t-[5px] border-l-[5px] border-emerald-400 rounded-tl-3xl shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                <div className="absolute -top-1 -right-1 w-10 h-10 border-t-[5px] border-r-[5px] border-emerald-400 rounded-tr-3xl shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-[5px] border-l-[5px] border-emerald-400 rounded-bl-3xl shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-[5px] border-r-[5px] border-emerald-400 rounded-br-3xl shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
                 
-                {/* Animasi Garis Scan */}
-                <div className="w-full h-1 bg-gradient-to-r from-transparent via-[#FF5A5F] to-transparent shadow-[0_0_15px_#FF5A5F] animate-scan-move absolute top-0"></div>
+                {/* Animasi Garis Scan Emerald */}
+                <div className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#34d399] animate-scan-move absolute top-0"></div>
               </div>
 
               {/* Teks Petunjuk */}
-              <div className="mt-12 px-6 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-3">
-                <ScanLine className="w-4 h-4 text-[#FF5A5F] animate-pulse" />
-                <p className="text-white text-xs font-medium tracking-wide">Posisikan kode di dalam area kotak</p>
+              <div className="mt-12 px-6 py-3 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
+                <ScanLine className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <p className="text-white text-xs font-medium tracking-wide">Arahkan kode ke dalam bingkai</p>
               </div>
             </div>
 
             {error && (
-              <div className="absolute bottom-10 left-6 right-6 z-30 bg-red-500/90 backdrop-blur-lg text-white p-4 rounded-3xl flex items-center gap-3 animate-bounce shadow-2xl">
+              <div className="absolute bottom-10 left-6 right-6 z-30 bg-red-500/90 backdrop-blur-lg text-white p-4 rounded-[1.5rem] flex items-center gap-3 shadow-2xl">
                 <AlertCircle className="w-5 h-5" />
                 <span className="text-xs font-bold uppercase tracking-tight">{error}</span>
               </div>
@@ -130,59 +132,65 @@ export default function ScanPage() {
           </div>
         ) : (
           /* ACTION SCREEN (Setelah Berhasil Scan) */
-          <div className="absolute inset-0 bg-[#F8FAFC] z-40 flex flex-col animate-in slide-in-from-bottom duration-500">
-            <div className="flex-grow p-8 flex flex-col items-center justify-center">
-              <div className="w-20 h-20 bg-green-100 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{machineName}</h2>
-              <p className="text-slate-400 text-sm font-medium mb-10">Pilih status operasional mesin incinerator</p>
+          <div className="absolute inset-0 bg-[#F0F4F2] z-40 flex flex-col animate-in slide-in-from-bottom duration-500">
+            <div className="flex-grow px-6 py-10 flex flex-col items-center justify-center relative">
+              
+              <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-emerald-300/30 rounded-full blur-[80px]"></div>
 
-              <div className="w-full space-y-4">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-emerald-900/5 relative z-10 border border-emerald-50">
+                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                </div>
+              </div>
+              
+              <h2 className="text-3xl font-black text-emerald-950 tracking-tighter mb-1 uppercase text-center relative z-10">{machineName}</h2>
+              <p className="text-emerald-800/50 text-[11px] font-bold tracking-widest uppercase mb-10 relative z-10 text-center">Atur Status Operasional</p>
+
+              <div className="w-full space-y-4 relative z-10">
                 {/* Pilihan ON */}
                 <button 
                   onClick={() => setSelectedStatus('on')}
-                  className={`w-full p-5 rounded-[2.5rem] border-2 flex items-center justify-between transition-all active:scale-[0.98] ${
-                    selectedStatus === 'on' ? 'border-green-500 bg-green-50/50 shadow-lg shadow-green-100' : 'border-slate-100 bg-white text-slate-300'
+                  className={`w-full p-5 rounded-[2rem] border-[3px] flex items-center justify-between transition-all active:scale-[0.98] ${
+                    selectedStatus === 'on' ? 'border-emerald-500 bg-white shadow-xl shadow-emerald-900/10' : 'border-white bg-white/50 text-emerald-900/40 hover:bg-white/80'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-4 rounded-2xl ${selectedStatus === 'on' ? 'bg-green-500 text-white' : 'bg-slate-50'}`}>
+                    <div className={`p-4 rounded-[1.25rem] ${selectedStatus === 'on' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-emerald-50 text-emerald-900/40'}`}>
                       <Power className="w-6 h-6" />
                     </div>
-                    <span className={`text-lg font-bold ${selectedStatus === 'on' ? 'text-green-900' : 'text-slate-400'}`}>Mesin Hidup (ON)</span>
+                    <span className={`text-lg font-black tracking-tight ${selectedStatus === 'on' ? 'text-emerald-950' : 'text-emerald-900/40'}`}>MENYALA</span>
                   </div>
-                  {selectedStatus === 'on' && <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
+                  {selectedStatus === 'on' && <div className="w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
                 </button>
 
                 {/* Pilihan OFF */}
                 <button 
                   onClick={() => setSelectedStatus('off')}
-                  className={`w-full p-5 rounded-[2.5rem] border-2 flex items-center justify-between transition-all active:scale-[0.98] ${
-                    selectedStatus === 'off' ? 'border-red-500 bg-red-50/50 shadow-lg shadow-red-100' : 'border-slate-100 bg-white text-slate-300'
+                  className={`w-full p-5 rounded-[2rem] border-[3px] flex items-center justify-between transition-all active:scale-[0.98] ${
+                    selectedStatus === 'off' ? 'border-orange-500 bg-white shadow-xl shadow-orange-900/10' : 'border-white bg-white/50 text-emerald-900/40 hover:bg-white/80'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`p-4 rounded-2xl ${selectedStatus === 'off' ? 'bg-red-500 text-white' : 'bg-slate-50'}`}>
+                    <div className={`p-4 rounded-[1.25rem] ${selectedStatus === 'off' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'bg-emerald-50 text-emerald-900/40'}`}>
                       <Power className="w-6 h-6" />
                     </div>
-                    <span className={`text-lg font-bold ${selectedStatus === 'off' ? 'text-red-900' : 'text-slate-400'}`}>Mesin Mati (OFF)</span>
+                    <span className={`text-lg font-black tracking-tight ${selectedStatus === 'off' ? 'text-orange-950' : 'text-emerald-900/40'}`}>MATI</span>
                   </div>
-                  {selectedStatus === 'off' && <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
+                  {selectedStatus === 'off' && <div className="w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-white" /></div>}
                 </button>
               </div>
             </div>
 
-            <div className="p-8 pb-12 bg-white border-t border-slate-100 rounded-t-[3.5rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)]">
+            <div className="p-6 pb-12 bg-white rounded-t-[3rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.05)] border-t border-emerald-50 z-20">
               <button 
                 onClick={handleConfirmStatus}
                 disabled={isUpdating}
-                className="w-full bg-[#FF5A5F] hover:bg-[#ff484d] text-white font-black py-5 rounded-[2rem] flex items-center justify-center gap-3 shadow-xl shadow-red-200/50 active:scale-95 transition-transform"
+                className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/20 active:scale-[0.98] transition-transform text-sm uppercase tracking-widest"
               >
-                {isUpdating ? <Loader2 className="animate-spin" /> : 'KONFIRMASI STATUS'}
+                {isUpdating ? <Loader2 className="animate-spin w-5 h-5" /> : 'KONFIRMASI STATUS'}
               </button>
-              <button onClick={() => window.location.reload()} className="w-full mt-4 text-slate-400 font-bold text-sm tracking-wider uppercase">
-                Batal & Scan Ulang
+              <button onClick={() => window.location.reload()} className="w-full mt-5 text-emerald-800/40 font-bold text-[10px] tracking-widest uppercase hover:text-emerald-800 transition-colors">
+                Batal & Pindai Ulang
               </button>
             </div>
           </div>
@@ -208,3 +216,6 @@ export default function ScanPage() {
     </div>
   );
 }
+
+
+

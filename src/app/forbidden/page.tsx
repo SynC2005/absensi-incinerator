@@ -46,7 +46,7 @@ export default function ForbiddenPage() {
         <header className="flex justify-between items-center px-6 py-5 bg-transparent z-10">
           <div className="flex items-center gap-2 text-[#FF5A5F] font-semibold">
             <ShieldCheck className="w-5 h-5" />
-            <span className="text-sm tracking-tight">Security System</span>
+            <span className="text-sm tracking-tight">Sistem Keamanan</span>
           </div>
           <button className="text-slate-400 hover:text-slate-600 bg-slate-200/30 p-2 rounded-full transition-colors">
             <HelpCircle className="w-5 h-5" />
@@ -113,7 +113,7 @@ export default function ForbiddenPage() {
           <div className="mt-auto pt-10 flex items-center justify-center gap-2">
             <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">System Online</span>
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Sistem Aktif</span>
             </div>
           </div>
 
@@ -136,3 +136,6 @@ export default function ForbiddenPage() {
     </div>
   );
 }
+
+
+
