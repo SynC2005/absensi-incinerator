@@ -26,9 +26,13 @@ export default function DataPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  
+
   // Fungsi untuk memuat data log dan daftar mesin
   const fetchData = async () => {
     setIsLoading(true);
+
+    
     
     // 1. Ambil data log
     const { data: logData, error: logError } = await supabase
@@ -38,21 +42,43 @@ export default function DataPage() {
 
     if (!logError && logData) {
       const formattedLogs = logData.map((item: any) => {
-        const timeString = new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        let logType = 'system';
-        if (item.aksi === 'Input Berat') logType = 'weight';
-        else if (item.keterangan.includes('ON')) logType = 'status-on';
-        else if (item.keterangan.includes('OFF')) logType = 'status-off';
+  // Gunakan created_at dari database
+  const rawDate = item.created_at;
+  const dateObj = new Date(rawDate);
 
-        return {
-          id: item.id,
-          time: timeString,
-          operator: item.operator_name || 'Operator',
-          action: item.aksi === 'Input Berat' ? 'Memasukkan data berat' : item.nama_mesin,
-          value: item.keterangan,
-          type: logType
-        };
-      });
+  // Pastikan tanggal valid, jika tidak valid gunakan waktu saat ini sebagai cadangan
+  const isValidDate = !isNaN(dateObj.getTime());
+  const finalDate = isValidDate ? dateObj : new Date();
+
+  // Format Jam:Menit (untuk UI)
+  const timeString = finalDate.toLocaleTimeString('id-ID', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  }).replace('.', ':'); // Memastikan pemisah adalah titik dua
+
+  // Format Tanggal Lengkap (untuk Excel)
+  const fullDateString = finalDate.toLocaleDateString('id-ID', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+
+  let logType = 'system';
+  if (item.aksi === 'Input Berat') logType = 'weight';
+  else if (item.keterangan && item.keterangan.includes('ON')) logType = 'status-on';
+  else if (item.keterangan && item.keterangan.includes('OFF')) logType = 'status-off';
+
+  return {
+    id: item.id,
+    time: timeString,
+    fullDate: fullDateString, // Ini yang akan kita panggil di Excel
+    operator: item.operator_name || 'Operator',
+    action: item.aksi === 'Input Berat' ? 'Memasukkan data berat' : item.nama_mesin,
+    value: item.keterangan,
+    type: logType
+  };
+});
       setLogs(formattedLogs);
     }
 
@@ -123,6 +149,36 @@ export default function DataPage() {
     }
   };
 
+  const handleExport = () => {
+  if (logs.length === 0) {
+    alert("Tidak ada data untuk diekspor");
+    return;
+  }
+
+  // 1. Filter data (Hanya mengambil field yang dibutuhkan, membuang id dan type)
+  // logs di state Anda sudah diformat dengan baik di fetchData()
+  const dataToExport = logs.map(({ id, type, ...rest }) => ({
+    "Waktu": rest.time,
+    "Tanggal": rest.fullDate,
+    "Operator": rest.operator,
+    "Aktivitas": rest.action,
+    "Keterangan": rest.value
+  }));
+
+  // 2. Gunakan library xlsx secara dynamic import (agar bundle size tetap kecil)
+  import('xlsx').then((XLSX) => {
+    // Membuat worksheet
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    // Membuat workbook (file excel)
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Log Aktivitas");
+
+    // 3. Download file dengan nama berdasarkan tanggal hari ini
+    const dateStr = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `Log_Aktivitas_Reburn_${dateStr}.xlsx`);
+  });
+};
+
   return (
     <div className="min-h-svh bg-[#F8FAFC] flex justify-center font-sans overflow-x-hidden">
       
@@ -143,7 +199,9 @@ export default function DataPage() {
               </div>
               <ChevronDown className="w-3 h-3 text-slate-300" />
             </div>
-            <button className="bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-200">
+            <button 
+              onClick={handleExport} // Pasang di sini
+              className="bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-200">
               <Download className="w-3 h-3" /> Ekspor
             </button>
           </section>
