@@ -1,11 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   Check,
   Clock3,
-  Filter,
+  LogOut,
   Loader2,
   RefreshCcw,
   Search,
@@ -90,10 +91,12 @@ export default function AdminApprovalClient({
   initialProfiles,
   initialError,
 }: AdminApprovalClientProps) {
+  const router = useRouter();
   const [profiles, setProfiles] = useState<ProfileRow[]>(() => sortProfiles(initialProfiles));
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState(initialError);
 
@@ -166,6 +169,25 @@ export default function AdminApprovalClient({
     setUpdatingId(null);
   };
 
+  const handleLogout = async () => {
+    const isConfirmed = window.confirm('Apakah Anda yakin ingin keluar dari admin panel?');
+    if (!isConfirmed) return;
+
+    setIsLoggingOut(true);
+    setErrorMessage(null);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      setErrorMessage(error.message);
+      setIsLoggingOut(false);
+      return;
+    }
+
+    router.replace('/login');
+    router.refresh();
+  };
+
   return (
     <main className="min-h-screen bg-[#F0F4F2] pb-28 font-sans">
       <section className="bg-emerald-800 px-5 pb-24 pt-6 text-white">
@@ -186,15 +208,15 @@ export default function AdminApprovalClient({
           </div>
 
           <button
-            onClick={refreshProfiles}
-            disabled={isRefreshing}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-inner transition-transform active:scale-95 disabled:opacity-60"
-            aria-label="Muat ulang data profiles"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-emerald-100 shadow-inner transition-transform active:scale-95 disabled:opacity-60"
+            aria-label="Keluar dari admin panel"
           >
-            {isRefreshing ? (
-              <Loader2 className="h-5 w-5 animate-spin text-emerald-100" />
+            {isLoggingOut ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <RefreshCcw className="h-5 w-5 text-emerald-100" />
+              <LogOut className="h-5 w-5" />
             )}
           </button>
         </div>
@@ -270,27 +292,39 @@ export default function AdminApprovalClient({
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-700">
-            <Filter className="h-4 w-4" />
-          </div>
-          {filters.map((filter) => {
-            const isActive = activeFilter === filter;
+        <div className="mt-4 flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+            {filters.map((filter) => {
+              const isActive = activeFilter === filter;
 
-            return (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`h-10 shrink-0 rounded-2xl px-4 text-xs font-black transition-all ${
-                  isActive
-                    ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/10'
-                    : 'border border-emerald-100 bg-white text-slate-500'
-                }`}
-              >
-                {filter === 'all' ? 'Semua' : getRoleLabel(filter)}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`h-10 shrink-0 rounded-2xl px-4 text-xs font-black transition-all ${
+                    isActive
+                      ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/10'
+                      : 'border border-emerald-100 bg-white text-slate-500'
+                  }`}
+                >
+                  {filter === 'all' ? 'Semua' : getRoleLabel(filter)}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={refreshProfiles}
+            disabled={isRefreshing}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-700 shadow-sm transition-transform hover:bg-emerald-50 active:scale-95 disabled:opacity-60"
+            aria-label="Muat ulang data profiles"
+            title="Muat ulang data"
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </section>
 
