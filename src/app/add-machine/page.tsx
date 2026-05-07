@@ -29,7 +29,6 @@ export default function AddMachinePage() {
   }, []);
 
   const [namaTempat, setNamaTempat] = useState('');
-  const [deskripsi, setDeskripsi] = useState('');
   const [mapCenter, setMapCenter] = useState({ lat: -6.9745, lng: 107.6305 }); 
   const [markerPos, setMarkerPos] = useState({ lat: -6.9745, lng: 107.6305 });
   
@@ -258,17 +257,6 @@ export default function AddMachinePage() {
                 placeholder="Contoh: Unit Sektor 7" 
                 className="w-full bg-white border border-emerald-50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-[1.25rem] py-4 px-5 text-emerald-950 font-medium outline-none transition-all shadow-sm"
               />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-black text-emerald-800/60 uppercase tracking-widest mb-2 px-2">Catatan (Opsional)</label>
-              <textarea 
-                value={deskripsi}
-                onChange={(e) => setDeskripsi(e.target.value)}
-                placeholder="Tambahkan kondisi atau catatan operasional..." 
-                rows={3}
-                className="w-full bg-white border border-emerald-50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-[1.25rem] py-4 px-5 text-emerald-950 font-medium outline-none transition-all shadow-sm resize-none"
-              ></textarea>
             </div>
           </section>
 
