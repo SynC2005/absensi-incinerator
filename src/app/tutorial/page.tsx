@@ -1,7 +1,6 @@
 // File: src/app/tutorial/page.tsx
 'use client';
 
-import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { BookOpen, Download } from 'lucide-react';
 
@@ -11,13 +10,9 @@ export default function TutorialPage() {
   const pdfUrl = "/tutorial.pdf";
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col font-sans mb-24">
-      {/* 1. LAYER HIJAU (BACKGROUND ATAS) & HEADER */}
-      <div className="bg-emerald-950 w-full h-[60px] fixed top-0 z-0"></div>
-      <Header />
-
-      {/* 2. LAYER PUTIH (KONTEN UTAMA) */}
-      <div className="flex-1 w-full bg-slate-50 mt-[80px] rounded-t-[2.5rem] relative z-10 p-5 sm:p-7 shadow-[0_-15px_40px_-15px_rgba(0,0,0,0.1)]">
+    <main className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
+      {/* 1. KONTEN UTAMA */}
+      <div className="flex-1 w-full bg-slate-50 p-5 sm:p-7">
         
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-800 shadow-sm border border-emerald-200">
