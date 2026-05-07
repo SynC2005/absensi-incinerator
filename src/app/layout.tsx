@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aplikasi EcoFlow",
+  title: "ReBurn",
   description: "Aplikasi Absensi & Monitoring Incinerator",
 };
 

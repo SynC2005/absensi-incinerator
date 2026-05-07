@@ -38,7 +38,7 @@ export default function Header() {
     <header className="flex justify-between items-center px-6 pt-8 pb-4 bg-emerald-800 sticky top-0 z-40 shadow-md shadow-emerald-900/20">
       <div className="flex items-center gap-2">
         <Recycle className="w-6 h-6 text-emerald-300" />
-        <span className="font-bold text-lg text-white tracking-tight">EcoFlow</span>
+        <span className="font-bold text-lg text-white tracking-tight">ReBurn</span>
       </div>
       <div className="w-10 h-10 rounded-full overflow-hidden bg-white/20 border-2 border-white/40 shadow-sm cursor-pointer hover:ring-2 hover:ring-emerald-300 transition-all flex-shrink-0">
         <img 
