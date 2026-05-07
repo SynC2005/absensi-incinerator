@@ -2,6 +2,22 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import type { User } from '@supabase/supabase-js'
+
+function getRedirectPath(role?: string | null) {
+  if (role === 'admin') return '/admin'
+  if (role === 'pegawai') return '/dashboard'
+  return '/forbidden'
+}
+
+function getUserFullName(user: User) {
+  return (
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split('@')[0] ||
+    'Pengguna'
+  )
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -31,8 +47,30 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      // BERHASIL: Arahkan langsung ke /dashboard
-      return NextResponse.redirect(`${origin}/dashboard`)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError || !profile) {
+          await supabase.from('profiles').insert({
+            id: user.id,
+            full_name: getUserFullName(user),
+          })
+
+          return NextResponse.redirect(`${origin}/forbidden`)
+        }
+
+        return NextResponse.redirect(`${origin}${getRedirectPath(profile?.role)}`)
+      }
+
+      return NextResponse.redirect(`${origin}/forbidden`)
     }
   }
 
