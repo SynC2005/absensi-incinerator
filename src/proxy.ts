@@ -2,6 +2,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const EMPLOYEE_ROLE = 'pegawai'
+const ADMIN_ROLE = 'admin'
+const ACTIVE_ROLES = [EMPLOYEE_ROLE, ADMIN_ROLE]
+
+function getRedirectPath(role?: string | null) {
+  if (role === ADMIN_ROLE) return '/admin'
+  if (role === EMPLOYEE_ROLE) return '/dashboard'
+  return '/forbidden'
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request: { headers: request.headers },
@@ -37,6 +47,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const currentPath = request.nextUrl.pathname
+  const isAdminRoute = currentPath.startsWith('/admin')
 
   // =========================================================
   // HALAMAN PUBLIK
@@ -60,14 +71,8 @@ export async function proxy(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (profile?.role === 'pegawai') {
-        return NextResponse.redirect(
-          new URL('/dashboard', request.url)
-        )
-      }
-
       return NextResponse.redirect(
-        new URL('/forbidden', request.url)
+        new URL(getRedirectPath(profile?.role), request.url)
       )
     }
 
@@ -84,7 +89,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // =========================================================
-  // VALIDASI ROLE PEGAWAI
+  // VALIDASI ROLE
   // =========================================================
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -92,7 +97,15 @@ export async function proxy(request: NextRequest) {
     .eq('id', user.id)
     .single()
 
-  if (error || profile?.role !== 'pegawai') {
+  const role = profile?.role
+
+  if (error || !ACTIVE_ROLES.includes(role)) {
+    return NextResponse.redirect(
+      new URL('/forbidden', request.url)
+    )
+  }
+
+  if (isAdminRoute && role !== ADMIN_ROLE) {
     return NextResponse.redirect(
       new URL('/forbidden', request.url)
     )
