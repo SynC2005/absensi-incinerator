@@ -20,22 +20,6 @@ export default function BottomNav() {
   const hiddenRoutes = ['/login', '/forbidden', '/scan', '/auth/callback'];
   const isHidden = hiddenRoutes.some(route => pathname.startsWith(route));
 
-  // Fungsi Logout Supabase yang dipasang di tombol Akun
-  const handleLogout = async () => {
-    const confirmLogout = window.confirm("Apakah Anda yakin ingin keluar?");
-    if (!confirmLogout) return;
-
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      router.push('/login');
-    } catch (err: any) {
-      console.error("Gagal logout:", err.message);
-      alert("Terjadi kesalahan saat mencoba keluar.");
-    }
-  };
-
   if (isHidden) return null;
 
   return (
@@ -71,14 +55,11 @@ export default function BottomNav() {
           </span>
         </Link>
 
-        {/* TOMBOL 4: AKUN (LOGOUT) */}
-        <button 
-          onClick={handleLogout} 
-          className="flex flex-col items-center justify-center w-12 h-full group transition-all active:scale-95"
-        >
-          <User className="w-6 h-6 text-slate-400 group-hover:text-emerald-600 transition-colors" />
-          <span className="text-[10px] mt-1 font-bold tracking-tight text-slate-400 group-hover:text-emerald-600">Akun</span>
-        </button>
+        {/* TOMBOL 4: AKUN */}
+        <Link href="/akun" className="flex flex-col items-center justify-center w-12 h-full group transition-all active:scale-95">
+          <User className={`w-6 h-6 transition-all duration-300 ${pathname === '/akun' ? 'text-emerald-700 scale-110' : 'text-slate-400 group-hover:text-emerald-600'}`} />
+          <span className={`text-[10px] mt-1 font-bold tracking-tight transition-colors ${pathname === '/akun' ? 'text-emerald-700' : 'text-slate-400 group-hover:text-emerald-600'}`}>Akun</span>
+        </Link>
 
       </div>
     </div>
