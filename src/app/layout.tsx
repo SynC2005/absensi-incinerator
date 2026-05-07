@@ -10,7 +10,6 @@ const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Aplikasi EcoFlow",
   description: "Aplikasi Absensi & Monitoring Incinerator",
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1', // Tambahkan ini
 };
 
 export const viewport = {

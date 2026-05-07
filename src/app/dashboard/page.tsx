@@ -22,6 +22,8 @@ import { useBluetooth } from '@/hooks/useBluetooth';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import MachineCard from '@/components/MachineCard';
 
+const LIBRARIES: any = ['places'];
+
 export default function DashboardPage() {
   // Panggil "otak" sistem
   const { btStatus, weight, connectBluetooth, disconnectBluetooth } = useBluetooth();
@@ -36,7 +38,7 @@ export default function DashboardPage() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
-    libraries: ['places'],
+    libraries: LIBRARIES,
   });
 
   // Set default mesin saat data selesai dimuat
