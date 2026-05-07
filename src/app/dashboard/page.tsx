@@ -1,4 +1,3 @@
-// File: src/app/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,41 +13,97 @@ import {
   X 
 } from 'lucide-react';
 
-// --- IMPORT KOMPONEN & CUSTOM HOOKS ---
+// --- IMPORT KOMPONEN ---
+// Pastikan path import komponen ini sesuai dengan struktur folder Anda
 import BottomNav from '@/components/BottomNav';
 import MapSection from '@/components/MapSection';
 import StatCards from '@/components/StatCards';
-import { useBluetooth } from '@/hooks/useBluetooth';
-import { useDashboardData } from '@/hooks/useDashboardData';
 import MachineCard from '@/components/MachineCard';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const LIBRARIES: any = ['places'];
 
 export default function DashboardPage() {
-  // Panggil "otak" sistem
-  const { btStatus, weight, connectBluetooth, disconnectBluetooth } = useBluetooth();
+  // 1. Panggil data mesin dan profil dari database
   const { machines, isLoadingData, userProfile, isUploading, uploadSensorData } = useDashboardData();
 
-  // State Modal Unggah
+  // 2. STATE UNTUK BLUETOOTH BRIDGE (Pengganti useBluetooth)
+  const [btStatus, setBtStatus] = useState<'Disconnected' | 'Connecting' | 'Connected'>('Disconnected');
+  const [weight, setWeight] = useState<number>(0);
+
+  // 3. State Modal Unggah Data
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedMachineId, setSelectedMachineId] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // Setup Google Maps
+  // 4. Setup Google Maps
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
     libraries: LIBRARIES,
   });
 
-  // Set default mesin saat data selesai dimuat
+  // Set default mesin pertama kali data dimuat
   useEffect(() => {
     if (machines.length > 0 && !selectedMachineId) {
       setSelectedMachineId(machines[0].id);
     }
   }, [machines]);
 
-  // Fungsi Eksekusi Unggah ke DB
+  // =====================================================================
+  //  LOGIKA WEBVIEW BRIDGE (KOMUNIKASI DENGAN APLIKASI ANDROID/IOS)
+  // =====================================================================
+  useEffect(() => {
+    // Fungsi penangkap pesan dari Aplikasi Android
+    const handleMessageFromApp = (event: MessageEvent | Event) => {
+      try {
+        const msgEvent = event as MessageEvent;
+        // Tangkap data baik dalam bentuk string JSON maupun object
+        const data = typeof msgEvent.data === 'string' ? JSON.parse(msgEvent.data) : msgEvent.data;
+        
+        if (data.type === 'WEIGHT_DATA') {
+          setWeight(data.value);
+          setBtStatus('Connected');
+        } else if (data.type === 'STATUS_UPDATE') {
+          setBtStatus(data.value);
+        }
+      } catch (error) {
+        // Abaikan pesan lain yang bukan dari aplikasi kita
+      }
+    };
+
+    // Daftarkan Pendengar (Listener)
+    window.addEventListener('message', handleMessageFromApp);
+    document.addEventListener('message', handleMessageFromApp as EventListener);
+
+    return () => {
+      window.removeEventListener('message', handleMessageFromApp);
+      document.removeEventListener('message', handleMessageFromApp as EventListener);
+    };
+  }, []);
+
+  // --- FUNGSI MENGIRIM PERINTAH KE ANDROID ---
+  const connectBluetooth = () => {
+    // Cek apakah website ini sedang dibuka di dalam Aplikasi WebView Reburn
+    if (typeof window !== 'undefined' && (window as any).ReactNativeWebView) {
+      setBtStatus('Connecting');
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ action: 'CONNECT_BLUETOOTH' }));
+    } else {
+      // Jika dibuka di browser laptop/Chrome biasa, beri peringatan
+      alert("Akses Ditolak: Koneksi mesin SPP hanya bisa dilakukan melalui Aplikasi Android/iOS resmi Reburn.");
+    }
+  };
+
+  const disconnectBluetooth = () => {
+    if (typeof window !== 'undefined' && (window as any).ReactNativeWebView) {
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ action: 'DISCONNECT_BLUETOOTH' }));
+    }
+    setBtStatus('Disconnected');
+    setWeight(0);
+  };
+  // =====================================================================
+
+  // Fungsi Eksekusi Unggah ke DB Supabase
   const handleExecuteUpload = async () => {
     try {
       await uploadSensorData(selectedMachineId, weight);
@@ -58,7 +113,7 @@ export default function DashboardPage() {
         setUploadSuccess(false);
       }, 2000);
     } catch (error) {
-      alert("Gagal mengunggah data. Periksa koneksi Anda.");
+      alert("Gagal mengunggah data. Periksa koneksi internet Anda.");
     }
   };
 
@@ -78,20 +133,24 @@ export default function DashboardPage() {
             <div className="flex justify-start relative z-10">
               <div className="flex min-w-0 items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full bg-white/20 border-2 border-white/40 overflow-hidden flex-shrink-0 shadow-inner">
-                  <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.name)}&background=065f46&color=fff&size=150`} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.name || 'User')}&background=065f46&color=fff&size=150`} alt="Profile" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0 text-left text-white">
-                  <h1 className="font-bold text-[13px] leading-tight truncate max-w-[160px] tracking-tight capitalize">{userProfile.name}</h1>
-                  <p className="text-[9px] text-emerald-100 font-medium mt-0.5 capitalize">{userProfile.role}</p>
+                  <h1 className="font-bold text-[13px] leading-tight truncate max-w-[160px] tracking-tight capitalize">
+                    {userProfile?.name || 'Memuat...'}
+                  </h1>
+                  <p className="text-[9px] text-emerald-100 font-medium mt-0.5 capitalize">
+                    {userProfile?.role || 'Operator'}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Map Section Dipanggil dari Komponen */}
+          {/* Komponen Peta */}
           <MapSection isLoaded={isLoaded} machines={machines} />
 
-          {/* Kartu Total Sampah Harian */}
+          {/* Kartu Status Timbangan */}
           <section className="px-4 min-[390px]:px-5">
             <div className="bg-white rounded-[1.75rem] p-4 shadow-[0_18px_34px_-24px_rgba(6,95,70,0.45)] border border-emerald-50 relative overflow-hidden">
               <FileUp className="absolute -right-5 top-3 z-0 w-24 h-24 -rotate-12 text-emerald-50/80 pointer-events-none" />
@@ -113,22 +172,22 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Progress Bar Dikembalikan */}
+              {/* Progress Bar Status */}
               <div className="relative z-10 mb-4">
                 <div className="flex justify-between text-[10px] font-bold mb-2 uppercase tracking-widest">
                   <span className="text-slate-400">Target: 10kg</span>
                   <span className="text-emerald-700">{btStatus === 'Connected' ? 'TERHUBUNG KE SISTEM' : 'MENUNGGU KONEKSI'}</span>
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-700 rounded-full w-[80%] transition-all duration-1000 ease-out shadow-inner"></div>
+                  <div className={`h-full rounded-full transition-all duration-1000 ease-out shadow-inner ${btStatus === 'Connected' ? 'bg-emerald-500 w-full' : 'bg-emerald-700 w-[10%]'}`}></div>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsUploadModalOpen(true)}
-                disabled={btStatus !== 'Connected'}
+                disabled={btStatus !== 'Connected' || weight <= 0}
                 className={`relative z-10 w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2
-                  ${btStatus === 'Connected' 
+                  ${btStatus === 'Connected' && weight > 0
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200' 
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                   }`}
@@ -140,10 +199,9 @@ export default function DashboardPage() {
           </section>
         </div>
 
-        {/* --- BAGIAN TENGAH (FITUR APLIKASI & WATERMARK) --- */}
+        {/* --- BAGIAN TENGAH (FITUR APLIKASI) --- */}
         <div className="bg-white pt-6 pb-6 border-t border-slate-200/60 shadow-[0_-5px_15px_-10px_rgba(0,0,0,0.05)] relative z-10 rounded-b-[1.75rem] overflow-hidden">
           
-          {/* Watermark Logo Dikembalikan */}
           <div className="absolute inset-0 z-0 flex items-center justify-center opacity-5 pointer-events-none">
             <div className="w-[180px] h-[180px] bg-[url('/logo-reburn.jpeg')] bg-contain bg-center bg-no-repeat mix-blend-multiply"></div>
           </div>
@@ -169,7 +227,6 @@ export default function DashboardPage() {
                 </span>
               </div>
 
-              {/* Menu 2-4 Dikembalikan secara lengkap */}
               <div className="flex flex-col items-center">
                 <Link href="/data" className="w-[68px] h-[68px] bg-white rounded-[1.5rem] border border-slate-200 shadow-sm flex items-center justify-center text-purple-600 hover:bg-slate-50 active:scale-95 transition-all">
                   <FileUp strokeWidth={2.5} className="w-[28px] h-[28px]" />
@@ -199,13 +256,11 @@ export default function DashboardPage() {
         <div className="bg-[#F0F4F2] flex-1 pt-6 pb-24 border-t border-emerald-50 shadow-inner relative z-0">
           <section className="px-4 min-[390px]:px-5 space-y-5">
             
-            {/* 1. KARTU STATUS UNIT */}
             <div>
               <h2 className="text-base font-black text-slate-800 mb-3 tracking-tight">Status Unit</h2>
               <StatCards total={machines.length} active={activeMachines} inactive={inactiveMachines} />
             </div>
 
-            {/* 2. DAFTAR MESIN */}
             <div>
               <div className="flex justify-between items-center mb-3 mt-6">
                 <h2 className="text-base font-black text-slate-800 tracking-tight">Daftar Unit Mesin</h2>
@@ -224,7 +279,6 @@ export default function DashboardPage() {
                     <span className="text-[11px] text-slate-400 font-semibold">Belum ada data mesin terdaftar.</span>
                   </div>
                 ) : (
-                  // Gunakan komponen MachineCard di sini
                   machines.slice(0, 5).map((machine) => (
                     <MachineCard 
                       key={machine.id}
@@ -244,7 +298,7 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* --- MODAL UNGGAH DATA (Langsung di Dashboard) --- */}
+      {/* --- MODAL UNGGAH DATA --- */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm cursor-pointer" onClick={() => !isUploading && setIsUploadModalOpen(false)}></div>
