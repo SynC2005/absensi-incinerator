@@ -223,9 +223,13 @@ export default function DataPage() {
               ) : (
                 logs.map((log) => (
                   <div key={log.id} className="flex items-start gap-4 group">
-                    <div className="w-12 pt-1 flex-shrink-0">
-                      <span className="text-[11px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors">
+                    <div className="w-20 pt-1 flex-shrink-0 flex flex-col items-start">
+                      <span className="text-[11px] font-black text-slate-400 group-hover:text-emerald-600 transition-colors leading-none">
                         {log.time}
+                      </span>
+
+                      <span className="text-[9px] font-semibold text-slate-300 mt-1 block leading-tight">
+                        {log.fullDate}
                       </span>
                     </div>
 
