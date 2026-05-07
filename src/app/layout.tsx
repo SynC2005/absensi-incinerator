@@ -1,39 +1,36 @@
-// File: src/app/layout.tsx
-import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+'use client';
+
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import { usePathname } from "next/navigation";
 
-const inter = Inter({ subsets: ["latin"] });
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "ReBurn",
-  description: "Aplikasi Absensi & Monitoring Incinerator",
-};
-
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-}
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+});
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const pathname = usePathname();
+
+  // Sembunyikan header di landing page & login
+  const hideHeader =
+    pathname === '/' ||
+    pathname.startsWith('/login');
+
   return (
     <html lang="id">
       <body className={`${plusJakarta.className} bg-[#F0F4F2] text-[#064E3B]`}>
         <div className="flex justify-center min-h-screen">
           <div className="w-full max-w-md bg-background min-h-screen relative flex flex-col shadow-2xl shadow-emerald-900/10 overflow-x-hidden">
-            
-            {/* Header Global */}
-            <Header />
 
-            {/* Konten Halaman */}
+            {/* Header hanya untuk halaman private */}
+            {!hideHeader && <Header />}
+
             <main className="flex-grow flex flex-col relative">
               {children}
             </main>
@@ -44,6 +41,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-
-
