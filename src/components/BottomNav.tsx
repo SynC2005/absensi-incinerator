@@ -8,7 +8,7 @@ import {
   Home, 
   ClipboardList, 
   QrCode, 
-  Bell,
+  BookOpen,
   User
 } from 'lucide-react';
 
@@ -63,16 +63,13 @@ export default function BottomNav() {
           </Link>
         </div>
 
-        {/* TOMBOL 3: NOTIFIKASI */}
-        <button className="flex flex-col items-center justify-center w-12 h-full group ml-4 sm:ml-6 transition-all active:scale-95">
-          <div className="relative">
-             <Bell className="w-6 h-6 text-slate-400 group-hover:text-emerald-600 transition-colors" />
-             <span className="absolute top-0 right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </div>
-          <span className="text-[10px] mt-1 font-bold tracking-tight text-slate-400 group-hover:text-emerald-600 whitespace-nowrap">
-            Notifikasi
+        {/* TOMBOL 3: TUTORIAL */}
+        <Link href="/tutorial" className="flex flex-col items-center justify-center w-12 h-full group ml-4 sm:ml-6 transition-all active:scale-95">
+          <BookOpen className={`w-6 h-6 transition-all duration-300 ${pathname === '/tutorial' ? 'text-emerald-700 scale-110' : 'text-slate-400 group-hover:text-emerald-600'}`} />
+          <span className={`text-[10px] mt-1 font-bold tracking-tight whitespace-nowrap transition-colors ${pathname === '/tutorial' ? 'text-emerald-700' : 'text-slate-400 group-hover:text-emerald-600'}`}>
+            Tutorial
           </span>
-        </button>
+        </Link>
 
         {/* TOMBOL 4: AKUN (LOGOUT) */}
         <button 
