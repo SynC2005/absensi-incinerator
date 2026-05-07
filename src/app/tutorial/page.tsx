@@ -3,11 +3,17 @@
 
 import BottomNav from '@/components/BottomNav';
 import { BookOpen, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function TutorialPage() {
-  // Anda bisa menaruh file PDF panduan di dalam folder public/
-  // Contoh: public/tutorial.pdf
+  // Anda bisa menaruh file PDF panduan di dalam folder public
   const pdfUrl = "/tutorial.pdf";
+  const [viewerUrl, setViewerUrl] = useState<string>('');
+
+  useEffect(() => {
+    const absolutePdfUrl = `${window.location.origin}${pdfUrl}`;
+    setViewerUrl(`https://docs.google.com/viewer?url=${encodeURIComponent(absolutePdfUrl)}&embedded=true`);
+  }, [pdfUrl]);
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
@@ -39,14 +45,17 @@ export default function TutorialPage() {
           </div>
           
           <div className="w-full h-[60vh] rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-100 relative">
-            {/* Embed PDF menggunakan iframe. Jika file belum ada, ini akan menampilkan pesan error bawaan browser */}
-            <iframe 
-              src={`${pdfUrl}#toolbar=0`} 
-              className="w-full h-full"
-              title="Panduan Aplikasi"
-            />
+            {/* Embed PDF menggunakan Google Docs Viewer via iframe */}
+            {viewerUrl ? (
+              <iframe 
+                src={viewerUrl} 
+                className="w-full h-full z-10 relative bg-white"
+                title="Panduan Aplikasi"
+                frameBorder="0"
+              />
+            ) : null}
             
-            {/* Placeholder visual jika iframe gagal memuat (PDF belum ditambahkan) */}
+            {/* Placeholder visual jika iframe/object gagal memuat */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none -z-10">
               <BookOpen className="w-12 h-12 mb-3 opacity-20" />
               <p className="text-sm font-bold">Harap letakkan "tutorial.pdf" di folder public</p>
