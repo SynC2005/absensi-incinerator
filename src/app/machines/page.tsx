@@ -12,16 +12,18 @@ const mapStyles = [
   { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
 ];
 
+const LIBRARIES: any = ['places']; // tambahkan ini agar sama dengan dashboard
+
 export default function FullMapPage() {
   const router = useRouter();
   const [machines, setMachines] = useState<any[]>([]);
   const [selectedMachine, setSelectedMachine] = useState<any>(null);
 
   const { isLoaded } = useJsApiLoader({
-  id: 'google-map-script',
-  googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
-  libraries: ['places'], // Tambahkan ini agar sama dengan dashboard
-});
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string,
+    libraries: LIBRARIES,
+  });
 
   useEffect(() => {
     const fetchMachines = async () => {
