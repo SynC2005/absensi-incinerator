@@ -269,7 +269,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               
-              <div className="space-y-2.5">
+              <div className="-mr-1 max-h-[42svh] space-y-2.5 overflow-y-auto overscroll-contain pr-1 pb-1 sm:max-h-[22rem]">
                 {isLoadingData ? (
                   <div className="bg-white rounded-2xl p-4 border border-slate-100 text-center shadow-sm">
                     <span className="text-[11px] text-slate-400 font-semibold animate-pulse">Memuat data mesin...</span>
@@ -279,7 +279,7 @@ export default function DashboardPage() {
                     <span className="text-[11px] text-slate-400 font-semibold">Belum ada data mesin terdaftar.</span>
                   </div>
                 ) : (
-                  machines.slice(0, 5).map((machine) => (
+                  machines.map((machine) => (
                     <MachineCard 
                       key={machine.id}
                       name={machine.nama_tempat}
