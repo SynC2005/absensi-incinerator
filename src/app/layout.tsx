@@ -17,10 +17,12 @@ export default function RootLayout({
 
   const pathname = usePathname();
 
-  // Sembunyikan header di landing page & login
+  // Sembunyikan header di halaman yang punya shell sendiri.
   const hideHeader =
     pathname === '/' ||
-    pathname.startsWith('/login');
+    pathname.startsWith('/forbidden') ||
+    pathname.startsWith('/scan') ||
+    pathname.startsWith('/auth/callback');
 
   return (
     <html lang="id">
