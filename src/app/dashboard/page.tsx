@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useJsApiLoader } from '@react-google-maps/api';
+import { useRouter } from 'next/navigation';
+import { useJsApiLoader, type Libraries } from '@react-google-maps/api';
 import { 
   FileUp, 
   Bluetooth, 
@@ -21,14 +22,40 @@ import StatCards from '@/components/StatCards';
 import MachineCard from '@/components/MachineCard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
-const LIBRARIES: any = ['places'];
+type BluetoothStatus = 'Disconnected' | 'Connecting' | 'Connected';
+
+type WebViewMessage = {
+  type?: 'WEIGHT_DATA' | 'STATUS_UPDATE';
+  value?: unknown;
+};
+
+type WebViewWindow = Window &
+  typeof globalThis & {
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
+  };
+
+const LIBRARIES: Libraries = ['places'];
+
+function isBluetoothStatus(value: unknown): value is BluetoothStatus {
+  return value === 'Disconnected' || value === 'Connecting' || value === 'Connected';
+}
 
 export default function DashboardPage() {
+  const router = useRouter();
+
   // 1. Panggil data mesin dan profil dari database
-  const { machines, isLoadingData, userProfile, isUploading, uploadSensorData } = useDashboardData();
+  const {
+    machines,
+    isLoadingData,
+    userProfile,
+    isUploading,
+    uploadSensorData
+  } = useDashboardData();
 
   // 2. STATE UNTUK BLUETOOTH BRIDGE (Pengganti useBluetooth)
-  const [btStatus, setBtStatus] = useState<'Disconnected' | 'Connecting' | 'Connected'>('Disconnected');
+  const [btStatus, setBtStatus] = useState<BluetoothStatus>('Disconnected');
   const [weight, setWeight] = useState<number>(0);
 
   // 3. State Modal Unggah Data
@@ -43,13 +70,6 @@ export default function DashboardPage() {
     libraries: LIBRARIES,
   });
 
-  // Set default mesin pertama kali data dimuat
-  useEffect(() => {
-    if (machines.length > 0 && !selectedMachineId) {
-      setSelectedMachineId(machines[0].id);
-    }
-  }, [machines]);
-
   // =====================================================================
   //  LOGIKA WEBVIEW BRIDGE (KOMUNIKASI DENGAN APLIKASI ANDROID/IOS)
   // =====================================================================
@@ -59,15 +79,15 @@ export default function DashboardPage() {
       try {
         const msgEvent = event as MessageEvent;
         // Tangkap data baik dalam bentuk string JSON maupun object
-        const data = typeof msgEvent.data === 'string' ? JSON.parse(msgEvent.data) : msgEvent.data;
+        const data = (typeof msgEvent.data === 'string' ? JSON.parse(msgEvent.data) : msgEvent.data) as WebViewMessage;
         
-        if (data.type === 'WEIGHT_DATA') {
+        if (data.type === 'WEIGHT_DATA' && typeof data.value === 'number') {
           setWeight(data.value);
           setBtStatus('Connected');
-        } else if (data.type === 'STATUS_UPDATE') {
+        } else if (data.type === 'STATUS_UPDATE' && isBluetoothStatus(data.value)) {
           setBtStatus(data.value);
         }
-      } catch (error) {
+      } catch {
         // Abaikan pesan lain yang bukan dari aplikasi kita
       }
     };
@@ -85,9 +105,11 @@ export default function DashboardPage() {
   // --- FUNGSI MENGIRIM PERINTAH KE ANDROID ---
   const connectBluetooth = () => {
     // Cek apakah website ini sedang dibuka di dalam Aplikasi WebView Reburn
-    if (typeof window !== 'undefined' && (window as any).ReactNativeWebView) {
+    const webView = window as WebViewWindow;
+
+    if (webView.ReactNativeWebView) {
       setBtStatus('Connecting');
-      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ action: 'CONNECT_BLUETOOTH' }));
+      webView.ReactNativeWebView.postMessage(JSON.stringify({ action: 'CONNECT_BLUETOOTH' }));
     } else {
       // Jika dibuka di browser laptop/Chrome biasa, beri peringatan
       alert("Akses Ditolak: Koneksi mesin SPP hanya bisa dilakukan melalui Aplikasi Android/iOS resmi Reburn.");
@@ -95,24 +117,28 @@ export default function DashboardPage() {
   };
 
   const disconnectBluetooth = () => {
-    if (typeof window !== 'undefined' && (window as any).ReactNativeWebView) {
-      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ action: 'DISCONNECT_BLUETOOTH' }));
+    const webView = window as WebViewWindow;
+
+    if (webView.ReactNativeWebView) {
+      webView.ReactNativeWebView.postMessage(JSON.stringify({ action: 'DISCONNECT_BLUETOOTH' }));
     }
     setBtStatus('Disconnected');
     setWeight(0);
   };
   // =====================================================================
 
+  const effectiveSelectedMachineId = selectedMachineId || machines[0]?.id || '';
+
   // Fungsi Eksekusi Unggah ke DB Supabase
   const handleExecuteUpload = async () => {
     try {
-      await uploadSensorData(selectedMachineId, weight);
+      await uploadSensorData(effectiveSelectedMachineId, weight);
       setUploadSuccess(true);
       setTimeout(() => {
         setIsUploadModalOpen(false);
         setUploadSuccess(false);
       }, 2000);
-    } catch (error) {
+    } catch {
       alert("Gagal mengunggah data. Periksa koneksi internet Anda.");
     }
   };
@@ -288,6 +314,7 @@ export default function DashboardPage() {
                       lng={machine.longitude}
                       status={machine.status}
                       lokasi={machine.lokasi}
+                      onEdit={() => router.push(`/edit-machine/${machine.id}`)}
                     />
                   ))
                 )}
@@ -339,7 +366,7 @@ export default function DashboardPage() {
                     <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Koneksikan ke Unit</label>
                     <div className="relative">
                       <select 
-                        value={selectedMachineId}
+                        value={effectiveSelectedMachineId}
                         onChange={(e) => setSelectedMachineId(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl pl-4 pr-10 py-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none font-bold"
                       >
@@ -353,7 +380,7 @@ export default function DashboardPage() {
 
                   <button 
                     onClick={handleExecuteUpload}
-                    disabled={isUploading || !selectedMachineId}
+                    disabled={isUploading || !effectiveSelectedMachineId}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:scale-95 transition-all disabled:bg-slate-300"
                   >
                     {isUploading ? <Loader2 className="animate-spin w-5 h-5" /> : <FileUp className="w-5 h-5" />}
