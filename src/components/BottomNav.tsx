@@ -17,7 +17,7 @@ export default function BottomNav() {
   const router = useRouter();
 
   // Daftar rute di mana Bottom Nav ini TIDAK BOLEH muncul
-  const hiddenRoutes = ['/login', '/forbidden', '/scan', '/auth/callback'];
+  const hiddenRoutes = ['/forbidden', '/scan', '/auth/callback'];
   const isHidden = hiddenRoutes.some(route => pathname.startsWith(route));
 
   if (isHidden) return null;
