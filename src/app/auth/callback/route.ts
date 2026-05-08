@@ -74,6 +74,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // GAGAL: Arahkan kembali ke login
-  return NextResponse.redirect(`${origin}/login?error=GagalAutentikasi`)
+  // GAGAL: Arahkan kembali ke halaman masuk utama
+  return NextResponse.redirect(`${origin}/?error=GagalAutentikasi`)
 }
