@@ -1,5 +1,5 @@
 // File: src/components/MachineCard.tsx
-import { MapPin, Activity, PowerOff } from 'lucide-react';
+import { Activity, PowerOff } from 'lucide-react';
 
 interface MachineCardProps {
   name: string;
@@ -7,9 +7,10 @@ interface MachineCardProps {
   lng: number;
   status: string;
   lokasi?: string; // Tambahkan opsional lokasi jika ada teks alamat
+  onEdit?: () => void;
 }
 
-export default function MachineCard({ name, lat, lng, status, lokasi }: MachineCardProps) {
+export default function MachineCard({ name, lat, lng, status, lokasi, onEdit }: MachineCardProps) {
   return (
     <div className="bg-white rounded-[1.75rem] px-4 py-3.5 border border-slate-100 shadow-sm flex items-center gap-3 hover:shadow-md transition-all group">
       
@@ -35,14 +36,28 @@ export default function MachineCard({ name, lat, lng, status, lokasi }: MachineC
         </p>
       </div>
       
-      {/* Badge Status */}
-      <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0 border ${
-        status === 'on'
-          ? 'bg-green-50 text-green-600 border-green-200 shadow-sm shadow-green-100'
-          : 'bg-red-50 text-red-500 border-red-200'
-      }`}>
-        {status === 'on' ? 'Aktif' : 'Mati'}
-      </span>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        {/* Badge Status */}
+        <span className={`text-[11px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full border ${
+          status === 'on'
+            ? 'bg-green-50 text-green-600 border-green-200 shadow-sm shadow-green-100'
+            : 'bg-red-50 text-red-500 border-red-200'
+        }`}>
+          {status === 'on' ? 'Aktif' : 'Mati'}
+        </span>
+
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            aria-label={`Edit ${name || 'unit mesin'}`}
+            title="Edit nama dan lokasi"
+            className="flex h-7 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-[9px] font-black uppercase tracking-wider text-slate-500 transition-all hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 active:scale-95"
+          >
+            Edit
+          </button>
+        )}
+      </div>
     </div>
   );
 }
