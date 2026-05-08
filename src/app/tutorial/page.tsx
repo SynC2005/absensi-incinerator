@@ -1,19 +1,8 @@
-// File: src/app/tutorial/page.tsx
-'use client';
-
 import BottomNav from '@/components/BottomNav';
-import { BookOpen, Download } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BookOpen, ExternalLink } from 'lucide-react';
 
 export default function TutorialPage() {
-  // Anda bisa menaruh file PDF panduan di dalam folder public
-  const pdfUrl = "/tutorial.pdf";
-  const [viewerUrl, setViewerUrl] = useState<string>('');
-
-  useEffect(() => {
-    const absolutePdfUrl = `${window.location.origin}${pdfUrl}`;
-    setViewerUrl(`https://docs.google.com/viewer?url=${encodeURIComponent(absolutePdfUrl)}&embedded=true`);
-  }, [pdfUrl]);
+  const pdfUrl = '/manual_book/tutorial.pdf';
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
@@ -32,34 +21,31 @@ export default function TutorialPage() {
 
         {/* BUNGKUSAN PDF VIEWER */}
         <div className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center mb-4">
             <h2 className="text-sm font-bold text-emerald-900">Dokumen PDF</h2>
-            <a 
-              href={pdfUrl} 
-              download
-              className="flex items-center justify-center gap-2 bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-900 transition-colors shadow-sm"
-            >
-              <Download className="w-4 h-4" />
-              Unduh
-            </a>
           </div>
           
           <div className="w-full h-[60vh] rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-100 relative">
-            {/* Embed PDF menggunakan Google Docs Viewer via iframe */}
-            {viewerUrl ? (
-              <iframe 
-                src={viewerUrl} 
-                className="w-full h-full z-10 relative bg-white"
-                title="Panduan Aplikasi"
-                frameBorder="0"
-              />
-            ) : null}
-            
-            {/* Placeholder visual jika iframe/object gagal memuat */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none -z-10">
-              <BookOpen className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm font-bold">Harap letakkan "tutorial.pdf" di folder public</p>
-            </div>
+            <object
+              data={pdfUrl}
+              type="application/pdf"
+              className="w-full h-full bg-white"
+              aria-label="Panduan penggunaan aplikasi"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-slate-500">
+                <BookOpen className="w-12 h-12 opacity-25" />
+                <p className="text-sm font-bold">PDF tidak bisa ditampilkan di browser ini.</p>
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-emerald-900"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Buka PDF
+                </a>
+              </div>
+            </object>
           </div>
         </div>
         
