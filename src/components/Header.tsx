@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 export default function Header() {
   const pathname = usePathname();
   const [userName, setUserName] = useState<string>('Memuat...');
-  const hiddenRoutes = ['/login', '/forbidden', '/scan', '/auth/callback', '/dashboard', '/data', '/add-machine', '/admin'];
+  const hiddenRoutes = ['/forbidden', '/scan', '/auth/callback', '/dashboard', '/data', '/add-machine', '/admin'];
   const isHidden = hiddenRoutes.some(route => pathname.startsWith(route));
 
   useEffect(() => {
