@@ -56,7 +56,7 @@ export default function AkunPage() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      router.push('/login');
+      router.push('/');
     } catch (err: any) {
       console.error("Gagal logout:", err.message);
       alert("Terjadi kesalahan saat mencoba keluar.");
