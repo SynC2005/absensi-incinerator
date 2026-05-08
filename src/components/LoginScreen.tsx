@@ -5,6 +5,21 @@ import { useState } from 'react';
 import { Leaf, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+const MOBILE_AUTH_CALLBACK_URL = 'absensiincinerator://auth/callback';
+
+type ReactNativeWebViewBridge = {
+  postMessage: (message: string) => void;
+};
+
+declare global {
+  interface Window {
+    AbsensiMobileAuth?: {
+      externalOAuth?: boolean;
+    };
+    ReactNativeWebView?: ReactNativeWebViewBridge;
+  }
+}
+
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,14 +29,36 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const mobileBridge = window.ReactNativeWebView;
+      const supportsExternalOAuth =
+        window.AbsensiMobileAuth?.externalOAuth === true && Boolean(mobileBridge);
+      const redirectTo = supportsExternalOAuth
+        ? MOBILE_AUTH_CALLBACK_URL
+        : `${window.location.origin}/auth/callback`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
+          skipBrowserRedirect: supportsExternalOAuth,
         },
       });
 
       if (error) throw error;
+
+      if (supportsExternalOAuth) {
+        if (!data.url) {
+          throw new Error('URL login Google tidak tersedia.');
+        }
+
+        mobileBridge?.postMessage(
+          JSON.stringify({
+            type: 'supabase-oauth',
+            url: data.url,
+          })
+        );
+        setLoading(false);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login.');
       setLoading(false);
