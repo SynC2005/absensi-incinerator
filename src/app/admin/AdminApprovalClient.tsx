@@ -188,7 +188,7 @@ export default function AdminApprovalClient({
       return;
     }
 
-    router.replace('/login');
+    router.replace('/');
     router.refresh();
   };
 
