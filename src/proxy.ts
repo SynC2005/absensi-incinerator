@@ -1,4 +1,4 @@
-// File: src/middleware.ts
+// File: src/proxy.ts
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -48,12 +48,34 @@ export async function proxy(request: NextRequest) {
 
   const currentPath = request.nextUrl.pathname
   const isAdminRoute = currentPath.startsWith('/admin')
+  const isLegacyLoginRoute = currentPath === '/login'
+
+  // /login sudah tidak menjadi halaman tersendiri.
+  // Redirect tetap dijaga agar bookmark lama dan callback lama tidak berakhir 404.
+  if (isLegacyLoginRoute) {
+    if (!user) {
+      const redirectUrl = new URL('/', request.url)
+      redirectUrl.search = request.nextUrl.search
+
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    return NextResponse.redirect(
+      new URL(getRedirectPath(profile?.role), request.url)
+    )
+  }
 
   // =========================================================
   // HALAMAN PUBLIK
   // Bisa diakses tanpa login
   // =========================================================
-  const publicRoutes = ['/', '/login', '/forbidden']
+  const publicRoutes = ['/', '/forbidden']
 
   const isPublicRoute =
     publicRoutes.includes(currentPath) ||
@@ -61,9 +83,9 @@ export async function proxy(request: NextRequest) {
 
   if (isPublicRoute) {
 
-    // Jika user SUDAH login dan membuka halaman login
+    // Jika user SUDAH login dan membuka halaman utama
     // arahkan ke dashboard sesuai role
-    if (currentPath === '/login' && user) {
+    if (currentPath === '/' && user) {
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -84,7 +106,7 @@ export async function proxy(request: NextRequest) {
   // =========================================================
   if (!user) {
     return NextResponse.redirect(
-      new URL('/login', request.url)
+      new URL('/', request.url)
     )
   }
 
