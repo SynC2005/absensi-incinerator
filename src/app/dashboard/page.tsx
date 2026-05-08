@@ -269,7 +269,8 @@ export default function DashboardPage() {
                 </Link>
               </div>
               
-              <div className="-mr-1 max-h-[42svh] space-y-2.5 overflow-y-auto overscroll-contain pr-1 pb-1 sm:max-h-[22rem]">
+              <div className="relative min-h-[9rem] max-h-[42svh] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-emerald-100/70 bg-white/45 p-2 pb-4 shadow-inner [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] sm:max-h-[22rem]">
+                <div className="space-y-2.5">
                 {isLoadingData ? (
                   <div className="bg-white rounded-2xl p-4 border border-slate-100 text-center shadow-sm">
                     <span className="text-[11px] text-slate-400 font-semibold animate-pulse">Memuat data mesin...</span>
@@ -290,6 +291,7 @@ export default function DashboardPage() {
                     />
                   ))
                 )}
+                </div>
               </div>
             </div>
 
