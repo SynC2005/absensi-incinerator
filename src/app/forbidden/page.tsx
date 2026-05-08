@@ -1,9 +1,4 @@
-// File: src/app/forbidden/page.tsx
-'use client';
-
-import { useRouter } from 'next/navigation';
 import { 
-  Lock, 
   HelpCircle, 
   ShieldAlert, 
   Info, 
@@ -11,31 +6,8 @@ import {
   LogOut, 
   ShieldCheck
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 export default function ForbiddenPage() {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      // 1. Lakukan Sign Out dari Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-
-      // 2. Clear localStorage/sessionStorage secara manual untuk memastikan
-      window.localStorage.clear();
-      
-      // 3. Paksa redirect ke halaman login
-      // Menggunakan window.location.href lebih ampuh untuk reset state total
-      window.location.href = '/login';
-    } catch (err) {
-      console.error("Gagal keluar:", err);
-      // Fallback jika API bermasalah
-      router.push('/login');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-100 flex justify-center font-sans">
       
@@ -59,7 +31,7 @@ export default function ForbiddenPage() {
           {/* ICON ILLUSTRATION */}
           <div className="relative mb-12">
             {/* Dotted border background */}
-            <div className="absolute inset-0 border-[3px] border-dashed border-red-200 rounded-[3rem] scale-125 opacity-60 animate-spin-slow"></div>
+            <div className="absolute inset-0 border-[3px] border-dashed border-red-200 rounded-[3rem] scale-125 opacity-60"></div>
             {/* Glowing effect */}
             <div className="absolute inset-0 bg-red-400/10 blur-3xl rounded-full scale-150"></div>
             
@@ -87,7 +59,7 @@ export default function ForbiddenPage() {
               <div>
                 <h3 className="font-bold text-slate-900 text-sm mb-1.5">Langkah Selanjutnya</h3>
                 <p className="text-[13px] text-slate-500 leading-relaxed">
-                  Mintalah Admin untuk memperbarui status profil Anda di tabel <code className="bg-slate-100 px-1 rounded">profiles</code> menjadi <span className="text-slate-800 font-semibold italic">'pegawai'</span>.
+                  Mintalah Admin untuk memperbarui status profil Anda di tabel <code className="bg-slate-100 px-1 rounded">profiles</code> menjadi <span className="text-slate-800 font-semibold italic">pegawai</span>.
                 </p>
               </div>
             </div>
@@ -95,18 +67,23 @@ export default function ForbiddenPage() {
 
           {/* ACTION BUTTONS */}
           <div className="w-full space-y-4">
-            <button className="w-full bg-[#FF5A5F] hover:bg-[#ff484d] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-red-200/50">
+            <button
+              type="button"
+              className="w-full bg-[#FF5A5F] hover:bg-[#ff484d] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-red-200/50"
+            >
               <Headset className="w-5 h-5" />
               <span>Hubungi Admin IT</span>
             </button>
-            
-            <button 
-              onClick={handleLogout}
-              className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Keluar dari Akun</span>
-            </button>
+
+            <form action="/auth/logout" method="post">
+              <button
+                type="submit"
+                className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Keluar dari Akun</span>
+              </button>
+            </form>
           </div>
 
           {/* SYSTEM STATUS */}
@@ -123,16 +100,6 @@ export default function ForbiddenPage() {
         <div className="h-6 w-full bg-transparent"></div>
 
       </div>
-
-      <style jsx>{`
-        .animate-spin-slow {
-          animation: spin 8s linear infinite;
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg) scale(1.25); }
-          to { transform: rotate(360deg) scale(1.25); }
-        }
-      `}</style>
     </div>
   );
 }
