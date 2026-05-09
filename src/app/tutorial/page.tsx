@@ -1,9 +1,9 @@
 import BottomNav from '@/components/BottomNav';
 import { BookOpen, Download, ExternalLink } from 'lucide-react';
+import TutorialPdfPreview from './TutorialPdfPreview';
 
 export default function TutorialPage() {
   const pdfUrl = '/tutorial/pdf';
-  const pdfViewerUrl = `${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`;
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
@@ -46,16 +46,11 @@ export default function TutorialPage() {
           </div>
           
           <div className="w-full h-[60vh] rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-100 relative">
-            <iframe
-              src={pdfViewerUrl}
-              title="Panduan penggunaan aplikasi"
-              className="w-full h-full bg-white"
-              loading="lazy"
-            />
+            <TutorialPdfPreview pdfUrl={pdfUrl} />
           </div>
 
           <div className="mt-3 flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <span>Jika pratinjau kosong di browser tertentu, buka file langsung di tab baru.</span>
+            <span>File asli tetap tersedia untuk dibuka atau diunduh.</span>
             <a
               href={pdfUrl}
               target="_blank"
