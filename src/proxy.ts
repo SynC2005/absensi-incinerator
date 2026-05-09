@@ -75,7 +75,7 @@ export async function proxy(request: NextRequest) {
   // HALAMAN PUBLIK
   // Bisa diakses tanpa login
   // =========================================================
-  const publicRoutes = ['/', '/forbidden']
+  const publicRoutes = ['/', '/forbidden', '/tutorial/pdf']
 
   const isPublicRoute =
     publicRoutes.includes(currentPath) ||
